@@ -1,0 +1,6 @@
+src/features/courses/pages/CourseBuilderPage.tsx(86,19): error TS6133: 't' is declared but its value is never read.
+src/features/courses/pages/CourseBuilderPage.tsx(315,17): error TS6133: 'title' is declared but its value is never read.
+src/features/courses/pages/CourseDetailPage.tsx(21,1): error TS6133: 'ArrowBackIcon' is declared but its value is never read.
+src/features/courses/pages/CourseDetailPage.tsx(23,1): error TS6133: 'BuildIcon' is declared but its value is never read.
+src/features/courses/pages/CourseDetailPage.tsx(27,1): error TS6133: 'WhatsAppIcon' is declared but its value is never read.
+src/features/courses/pages/CourseManagePage.tsx(12,1): error TS6133: 'EditIcon' is declared but its value is never read.
