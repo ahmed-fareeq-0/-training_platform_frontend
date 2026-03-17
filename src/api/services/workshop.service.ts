@@ -86,24 +86,49 @@ const workshopService = {
                     return res.data.data;
           },
 
-          // --- Syllabus Content ---
-          getContent: async (workshopId: string) => {
-                    const res = await api.get<ApiResponse<any[]>>(ENDPOINTS.WORKSHOPS.CONTENT(workshopId));
+          // --- Syllabus (Sections & Lessons) ---
+          getSyllabus: async (workshopId: string) => {
+                    const res = await api.get<ApiResponse<any[]>>(ENDPOINTS.WORKSHOPS.SYLLABUS(workshopId));
                     return res.data.data;
           },
 
-          addContent: async (workshopId: string, data: Record<string, unknown>) => {
-                    const res = await api.post<ApiResponse<any>>(ENDPOINTS.WORKSHOPS.CONTENT(workshopId), data);
+          addSection: async (workshopId: string, data: Record<string, unknown>) => {
+                    const res = await api.post<ApiResponse<any>>(ENDPOINTS.WORKSHOPS.SECTIONS(workshopId), data);
                     return res.data.data;
           },
 
-          updateContent: async (workshopId: string, contentId: string, data: Record<string, unknown>) => {
-                    const res = await api.patch<ApiResponse<any>>(ENDPOINTS.WORKSHOPS.CONTENT_ITEM(workshopId, contentId), data);
+          updateSection: async (sectionId: string, data: Record<string, unknown>) => {
+                    const res = await api.patch<ApiResponse<any>>(ENDPOINTS.WORKSHOPS.SECTION(sectionId), data);
                     return res.data.data;
           },
 
-          deleteContent: async (workshopId: string, contentId: string) => {
-                    const res = await api.delete<ApiResponse<null>>(ENDPOINTS.WORKSHOPS.CONTENT_ITEM(workshopId, contentId));
+          deleteSection: async (sectionId: string) => {
+                    const res = await api.delete<ApiResponse<null>>(ENDPOINTS.WORKSHOPS.SECTION(sectionId));
+                    return res.data;
+          },
+
+          reorderSections: async (workshopId: string, sections: { id: string; order: number }[]) => {
+                    const res = await api.post<ApiResponse<null>>(ENDPOINTS.WORKSHOPS.REORDER_SECTIONS(workshopId), { sections });
+                    return res.data;
+          },
+
+          addLesson: async (sectionId: string, data: Record<string, unknown>) => {
+                    const res = await api.post<ApiResponse<any>>(ENDPOINTS.WORKSHOPS.LESSONS(sectionId), data);
+                    return res.data.data;
+          },
+
+          updateLesson: async (lessonId: string, data: Record<string, unknown>) => {
+                    const res = await api.patch<ApiResponse<any>>(ENDPOINTS.WORKSHOPS.LESSON(lessonId), data);
+                    return res.data.data;
+          },
+
+          deleteLesson: async (lessonId: string) => {
+                    const res = await api.delete<ApiResponse<null>>(ENDPOINTS.WORKSHOPS.LESSON(lessonId));
+                    return res.data;
+          },
+
+          reorderLessons: async (sectionId: string, lessons: { id: string; order: number }[]) => {
+                    const res = await api.post<ApiResponse<null>>(ENDPOINTS.WORKSHOPS.REORDER_LESSONS(sectionId), { lessons });
                     return res.data;
           },
 };

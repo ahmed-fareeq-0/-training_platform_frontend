@@ -12,7 +12,9 @@ export default function AppLayout() {
   const { sidebarOpen } = useUIStore();
   const { user } = useAuthStore();
 
-  const isHeaderNavRole = user && [UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER].includes(user.role as UserRole);
+  // Guests (!user) or standard roles (Trainee, Trainer, Manager) use top header navigation and wider padding.
+  // Admins use the sidebar.
+  const isHeaderNavRole = !user || [UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER].includes(user.role as UserRole);
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>

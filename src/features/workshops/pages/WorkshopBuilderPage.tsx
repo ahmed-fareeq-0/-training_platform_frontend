@@ -27,7 +27,8 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import dayjs from 'dayjs';
 import {
           useWorkshopDetail, useUpdateWorkshop,
-          useWorkshopContent, useAddWorkshopContent, useUpdateWorkshopContent, useDeleteWorkshopContent,
+          useWorkshopSyllabus, useAddWorkshopSection, useUpdateWorkshopSection, useDeleteWorkshopSection, useReorderWorkshopSections,
+          useAddWorkshopLesson, useUpdateWorkshopLesson, useDeleteWorkshopLesson, useReorderWorkshopLessons,
           useUpdateWorkshopStatus,
 } from '../hooks/useWorkshops';
 import { useSpecializations } from '../../specializations/hooks/useSpecializations';
@@ -81,12 +82,15 @@ const WorkshopBuilderPage: React.FC = () => {
           // Data
           const { data: workshop, isLoading } = useWorkshopDetail(id!);
           const { data: specializations } = useSpecializations();
-          const { data: contentItems = [], isLoading: contentLoading } = useWorkshopContent(id!);
+          const { data: syllabusSections = [], isLoading: contentLoading } = useWorkshopSyllabus(id!);
           const updateWorkshop = useUpdateWorkshop();
           const updateStatus = useUpdateWorkshopStatus();
-          const addContent = useAddWorkshopContent();
-          const updateContent = useUpdateWorkshopContent();
-          const deleteContent = useDeleteWorkshopContent();
+          const addSection = useAddWorkshopSection();
+          const updateSection = useUpdateWorkshopSection();
+          const deleteSection = useDeleteWorkshopSection();
+          const addLesson = useAddWorkshopLesson();
+          const updateLesson = useUpdateWorkshopLesson();
+          const deleteLesson = useDeleteWorkshopLesson();
 
           // Tab state
           const [activeTab, setActiveTab] = useState(0);
@@ -94,13 +98,20 @@ const WorkshopBuilderPage: React.FC = () => {
           // Workshop form
           const [workshopForm, setWorkshopForm] = useState<Record<string, any>>({});
 
-          // Syllabus content dialog
-          const [contentDialog, setContentDialog] = useState<{ mode: 'add' | 'edit'; contentId?: string } | null>(null);
-          const [contentForm, setContentForm] = useState<Record<string, string | number>>({});
+          // Section Dialog
+          const [sectionDialog, setSectionDialog] = useState<{ mode: 'add' | 'edit'; sectionId?: string; order?: number } | null>(null);
+          const [sectionForm, setSectionForm] = useState<Record<string, string | number>>({});
 
-          // Content three-dot menu
-          const [contentMenuAnchor, setContentMenuAnchor] = useState<null | HTMLElement>(null);
-          const [contentMenuTarget, setContentMenuTarget] = useState<any>(null);
+          // Lesson Dialog
+          const [lessonDialog, setLessonDialog] = useState<{ mode: 'add' | 'edit'; sectionId?: string; lessonId?: string; order?: number } | null>(null);
+          const [lessonForm, setLessonForm] = useState<Record<string, string | number>>({});
+
+          // Menu anchors
+          const [sectionMenuAnchor, setSectionMenuAnchor] = useState<null | HTMLElement>(null);
+          const [sectionMenuTarget, setSectionMenuTarget] = useState<any>(null);
+
+          const [lessonMenuAnchor, setLessonMenuAnchor] = useState<null | HTMLElement>(null);
+          const [lessonMenuTarget, setLessonMenuTarget] = useState<any>(null);
 
           // Cover image upload
           const [isDragging, setIsDragging] = useState(false);
@@ -214,53 +225,100 @@ const WorkshopBuilderPage: React.FC = () => {
                     }
           }, []);
 
-          // Content (Syllabus) handlers
-          const openAddContent = () => {
-                    setContentForm({ title_ar: '', title_en: '', description_ar: '', description_en: '', content_order: contentItems.length + 1 });
-                    setContentDialog({ mode: 'add' });
+          // --- Section Handlers ---
+          const openAddSection = () => {
+                    setSectionForm({ title_ar: '', title_en: '', section_order: syllabusSections.length + 1 });
+                    setSectionDialog({ mode: 'add' });
           };
 
-          const openEditContent = (item: any) => {
-                    setContentForm({
-                              title_ar: item.title_ar || '',
-                              title_en: item.title_en || '',
-                              description_ar: item.description_ar || '',
-                              description_en: item.description_en || '',
-                              content_order: item.content_order || 0,
+          const openEditSection = (section: any) => {
+                    setSectionForm({
+                              title_ar: section.title_ar || '',
+                              title_en: section.title_en || '',
+                              section_order: section.section_order || 0
                     });
-                    setContentDialog({ mode: 'edit', contentId: item.id });
+                    setSectionDialog({ mode: 'edit', sectionId: section.id });
           };
 
-          const handleSaveContent = async () => {
-                    if (!id || !contentDialog) return;
+          const handleSaveSection = async () => {
+                    if (!id || !sectionDialog) return;
                     try {
-                              if (contentDialog.mode === 'add') {
-                                        await addContent.mutateAsync({ workshopId: id, data: contentForm });
-                              } else if (contentDialog.contentId) {
-                                        await updateContent.mutateAsync({ workshopId: id, contentId: contentDialog.contentId, data: contentForm });
+                              if (sectionDialog.mode === 'add') {
+                                        await addSection.mutateAsync({ workshopId: id, data: sectionForm });
+                              } else if (sectionDialog.sectionId) {
+                                        await updateSection.mutateAsync({ workshopId: id, sectionId: sectionDialog.sectionId, data: sectionForm });
                               }
-                              setContentDialog(null);
-                              setContentForm({});
+                              setSectionDialog(null);
+                              setSectionForm({});
+                              setSectionMenuTarget(null);
                     } catch { /* handled */ }
           };
 
-          const handleDeleteContent = async (contentId: string) => {
+          const handleDeleteSection = async (sectionId: string) => {
                     if (!id) return;
-                    if (!confirm(isRTL ? 'هل أنت متأكد من حذف هذا المحتوى؟' : 'Delete this content item?')) return;
+                    if (!confirm(isRTL ? 'هل أنت متأكد من حذف هذا القسم وكل الدروس التي بداخله؟' : 'Delete this section and all topics inside it?')) return;
                     try {
-                              await deleteContent.mutateAsync({ workshopId: id, contentId });
+                              await deleteSection.mutateAsync({ workshopId: id, sectionId });
                     } catch { /* handled */ }
           };
 
-          // Three-dot menu
-          const handleContentMenuOpen = (event: React.MouseEvent<HTMLElement>, item: any) => {
+          const handleSectionMenuOpen = (event: React.MouseEvent<HTMLElement>, section: any) => {
                     event.stopPropagation();
-                    setContentMenuAnchor(event.currentTarget);
-                    setContentMenuTarget(item);
+                    setSectionMenuAnchor(event.currentTarget);
+                    setSectionMenuTarget(section);
           };
-          const handleContentMenuClose = () => {
-                    setContentMenuAnchor(null);
-                    setContentMenuTarget(null);
+          const handleSectionMenuClose = () => {
+                    setSectionMenuAnchor(null);
+          };
+
+          // --- Lesson Handlers ---
+          const openAddLesson = (sectionId: string, currentLessonsCount: number) => {
+                    setLessonForm({
+                              title_ar: '', title_en: '', description_ar: '', description_en: '', lesson_order: currentLessonsCount + 1
+                    });
+                    setLessonDialog({ mode: 'add', sectionId });
+          };
+
+          const openEditLesson = (lesson: any, sectionId: string) => {
+                    setLessonForm({
+                              title_ar: lesson.title_ar || '',
+                              title_en: lesson.title_en || '',
+                              description_ar: lesson.description_ar || '',
+                              description_en: lesson.description_en || '',
+                              lesson_order: lesson.lesson_order || 0
+                    });
+                    setLessonDialog({ mode: 'edit', sectionId, lessonId: lesson.id });
+          };
+
+          const handleSaveLesson = async () => {
+                    if (!id || !lessonDialog) return;
+                    try {
+                              if (lessonDialog.mode === 'add' && lessonDialog.sectionId) {
+                                        await addLesson.mutateAsync({ workshopId: id, sectionId: lessonDialog.sectionId, data: lessonForm });
+                              } else if (lessonDialog.lessonId) {
+                                        await updateLesson.mutateAsync({ workshopId: id, lessonId: lessonDialog.lessonId, data: lessonForm });
+                              }
+                              setLessonDialog(null);
+                              setLessonForm({});
+                              setLessonMenuTarget(null);
+                    } catch { /* handled */ }
+          };
+
+          const handleDeleteLesson = async (lessonId: string) => {
+                    if (!id) return;
+                    if (!confirm(isRTL ? 'هل أنت متأكد من حذف هذا الموضوع؟' : 'Delete this topic?')) return;
+                    try {
+                              await deleteLesson.mutateAsync({ workshopId: id, lessonId });
+                    } catch { /* handled */ }
+          };
+
+          const handleLessonMenuOpen = (event: React.MouseEvent<HTMLElement>, lesson: any, sectionId: string) => {
+                    event.stopPropagation();
+                    setLessonMenuAnchor(event.currentTarget);
+                    setLessonMenuTarget({ ...lesson, sectionId });
+          };
+          const handleLessonMenuClose = () => {
+                    setLessonMenuAnchor(null);
           };
 
           // Loading / Not found
@@ -516,31 +574,33 @@ const WorkshopBuilderPage: React.FC = () => {
                                                                       <Button
                                                                                 variant="contained"
                                                                                 startIcon={<AddIcon />}
-                                                                                onClick={openAddContent}
+                                                                                onClick={openAddSection}
                                                                                 sx={{ borderRadius: '12px', fontWeight: 700, boxShadow: 'none' }}
                                                                       >
-                                                                                {isRTL ? 'إضافة محتوى' : 'Add Content'}
+                                                                                {isRTL ? 'إضافة قسم' : 'Add Section'}
                                                                       </Button>
                                                             </Box>
 
                                                             {contentLoading ? (
                                                                       <Box sx={{ textAlign: 'center', py: 4 }}><CircularProgress /></Box>
-                                                            ) : contentItems.length === 0 ? (
+                                                            ) : syllabusSections.length === 0 ? (
                                                                       <Card sx={{ borderRadius: '16px', border: `1px solid ${theme.palette.divider}`, boxShadow: 'none', p: 4, textAlign: 'center' }}>
                                                                                 <FormatListBulletedIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                                                                                 <Typography color="text.secondary" fontWeight={600}>
-                                                                                          {isRTL ? 'لا يوجد محتوى بعد. أضف محتوى المنهج الدراسي.' : 'No content yet. Add syllabus content items.'}
+                                                                                          {isRTL ? 'لا يوجد محتوى بعد. أضف أقسام المنهج الدراسي.' : 'No content yet. Add syllabus sections.'}
                                                                                 </Typography>
                                                                       </Card>
                                                             ) : (
-                                                                      contentItems.map((item: any, idx: number) => (
+                                                                      syllabusSections.map((section: any, sIdx: number) => (
                                                                                 <Accordion
-                                                                                          key={item.id}
+                                                                                          key={section.id}
+                                                                                          disableGutters
+                                                                                          defaultExpanded
                                                                                           sx={{
                                                                                                     borderRadius: '12px !important',
                                                                                                     border: `1px solid ${theme.palette.divider}`,
                                                                                                     boxShadow: 'none',
-                                                                                                    mb: 2,
+                                                                                                    mb: 2.5,
                                                                                                     '&:before': { display: 'none' },
                                                                                                     overflow: 'hidden',
                                                                                           }}
@@ -549,21 +609,68 @@ const WorkshopBuilderPage: React.FC = () => {
                                                                                                     expandIcon={<ExpandMoreIcon />}
                                                                                                     sx={{
                                                                                                               bgcolor: alpha(theme.palette.primary.main, 0.04),
-                                                                                                              '& .MuiAccordionSummary-content': { alignItems: 'center', gap: 1.5 },
+                                                                                                              borderBottom: `1px solid ${theme.palette.divider}`,
+                                                                                                              '& .MuiAccordionSummary-content': { alignItems: 'center', gap: 1.5, my: 1 },
                                                                                                     }}
                                                                                           >
-                                                                                                    <Chip label={`${idx + 1}`} size="small" color="primary" sx={{ fontWeight: 700, minWidth: 28 }} />
-                                                                                                    <Typography fontWeight={700} sx={{ flex: 1, fontSize: '1rem' }}>
-                                                                                                              {getField(item.title_ar, item.title_en)}
+                                                                                                    <Chip label={`${sIdx + 1}`} size="small" color="primary" sx={{ fontWeight: 700, minWidth: 28 }} />
+                                                                                                    <Typography fontWeight={700} sx={{ flex: 1, fontSize: '1.05rem' }}>
+                                                                                                              {getField(section.title_ar, section.title_en)}
                                                                                                     </Typography>
-                                                                                                    <IconButton size="small" onClick={(e) => handleContentMenuOpen(e, item)}>
+                                                                                                    <IconButton size="small" onClick={(e) => handleSectionMenuOpen(e, section)}>
                                                                                                               <MoreVertIcon fontSize="small" />
                                                                                                     </IconButton>
                                                                                           </AccordionSummary>
-                                                                                          <AccordionDetails sx={{ p: 3 }}>
-                                                                                                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
-                                                                                                              {getField(item.description_ar, item.description_en) || (isRTL ? 'لا يوجد وصف' : 'No description')}
-                                                                                                    </Typography>
+                                                                                          <AccordionDetails sx={{ p: 0 }}>
+                                                                                                    {section.lessons && section.lessons.length > 0 ? (
+                                                                                                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                                                                                                                        {section.lessons.map((lesson: any, lIdx: number) => (
+                                                                                                                                  <Box key={lesson.id} sx={{ 
+                                                                                                                                            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                                                                                                                            p: 2, borderBottom: `1px solid ${theme.palette.divider}`,
+                                                                                                                                            '&:last-child': { borderBottom: 'none' },
+                                                                                                                                            '&:hover': { bgcolor: alpha(theme.palette.action.hover, 0.5) }
+                                                                                                                                  }}>
+                                                                                                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                                                                                                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                                                                                                                <Typography variant="body2" fontWeight={700} color="text.secondary">
+                                                                                                                                                                          {sIdx + 1}.{lIdx + 1}
+                                                                                                                                                                </Typography>
+                                                                                                                                                                <Typography fontWeight={600}>
+                                                                                                                                                                          {getField(lesson.title_ar, lesson.title_en)}
+                                                                                                                                                                </Typography>
+                                                                                                                                                      </Box>
+                                                                                                                                                      {(lesson.description_ar || lesson.description_en) && (
+                                                                                                                                                                <Typography variant="body2" color="text.secondary" sx={{ ml: 4 }}>
+                                                                                                                                                                          {getField(lesson.description_ar, lesson.description_en)}
+                                                                                                                                                                </Typography>
+                                                                                                                                                      )}
+                                                                                                                                            </Box>
+                                                                                                                                            <IconButton size="small" onClick={(e) => handleLessonMenuOpen(e, lesson, section.id)}>
+                                                                                                                                                      <MoreVertIcon fontSize="small" />
+                                                                                                                                            </IconButton>
+                                                                                                                                  </Box>
+                                                                                                                        ))}
+                                                                                                              </Box>
+                                                                                                    ) : (
+                                                                                                              <Box sx={{ p: 3, textAlign: 'center' }}>
+                                                                                                                        <Typography variant="body2" color="text.secondary">
+                                                                                                                                  {isRTL ? 'لا يوجد مواضيع في هذا القسم. أضف موضوعاً.' : 'No topics in this section. Add a topic.'}
+                                                                                                                        </Typography>
+                                                                                                              </Box>
+                                                                                                    )}
+                                                                                                    
+                                                                                                    {/* Add Topic Button */}
+                                                                                                    <Box sx={{ p: 2, bgcolor: alpha(theme.palette.background.default, 0.5), borderTop: `1px dashed ${theme.palette.divider}`, display: 'flex', justifyContent: 'center' }}>
+                                                                                                              <Button 
+                                                                                                                        variant="text" 
+                                                                                                                        startIcon={<AddIcon />}
+                                                                                                                        onClick={() => openAddLesson(section.id, section.lessons?.length || 0)}
+                                                                                                                        sx={{ fontWeight: 600 }}
+                                                                                                              >
+                                                                                                                        {isRTL ? 'إضافة موضوع' : 'Add Topic'}
+                                                                                                              </Button>
+                                                                                                    </Box>
                                                                                           </AccordionDetails>
                                                                                 </Accordion>
                                                                       ))
@@ -591,18 +698,29 @@ const WorkshopBuilderPage: React.FC = () => {
                                                             </Card>
 
                                                             {/* Syllabus Preview */}
-                                                            {contentItems.length > 0 && (
+                                                            {syllabusSections.length > 0 && (
                                                                       <Card sx={{ borderRadius: '16px', border: `1px solid ${theme.palette.divider}`, boxShadow: 'none', mb: 3 }}>
                                                                                 <CardContent sx={{ p: 3 }}>
                                                                                           <Typography variant="h6" fontWeight={700} gutterBottom sx={{ mb: 2 }}>
                                                                                                     {isRTL ? 'المنهج الدراسي' : 'Syllabus'}
                                                                                           </Typography>
-                                                                                          {contentItems.map((item: any, idx: number) => (
-                                                                                                    <Box key={item.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.04), borderRadius: 2 }}>
-                                                                                                              <Chip label={`${idx + 1}`} size="small" color="primary" sx={{ fontWeight: 700, minWidth: 28 }} />
-                                                                                                              <Typography fontWeight={700} sx={{ fontSize: '1rem' }}>
-                                                                                                                        {getField(item.title_ar, item.title_en)}
-                                                                                                              </Typography>
+                                                                                          {syllabusSections.map((section: any, sIdx: number) => (
+                                                                                                    <Box key={section.id} sx={{ mb: 2 }}>
+                                                                                                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, p: 1.5, bgcolor: alpha(theme.palette.primary.main, 0.04), borderRadius: 2 }}>
+                                                                                                                        <Chip label={`القسم ${sIdx + 1}`} size="small" color="primary" sx={{ fontWeight: 700 }} />
+                                                                                                                        <Typography fontWeight={700} sx={{ fontSize: '1rem' }}>
+                                                                                                                                  {getField(section.title_ar, section.title_en)}
+                                                                                                                        </Typography>
+                                                                                                              </Box>
+                                                                                                              {section.lessons && section.lessons.length > 0 && (
+                                                                                                                        <Box sx={{ pl: 2, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                                                                                                                  {section.lessons.map((lesson: any) => (
+                                                                                                                                            <Typography key={lesson.id} variant="body2" color="text.secondary">
+                                                                                                                                                      • {getField(lesson.title_ar, lesson.title_en)}
+                                                                                                                                            </Typography>
+                                                                                                                                  ))}
+                                                                                                                        </Box>
+                                                                                                              )}
                                                                                                     </Box>
                                                                                           ))}
                                                                                 </CardContent>
@@ -654,61 +772,114 @@ const WorkshopBuilderPage: React.FC = () => {
                                         </Grid>
                               </Grid>
 
-                              {/* ======================== CONTENT THREE-DOT MENU ======================== */}
+                              {/* ======================== SECTION THREE-DOT MENU ======================== */}
                               <Menu
-                                        anchorEl={contentMenuAnchor}
-                                        open={Boolean(contentMenuAnchor)}
-                                        onClose={handleContentMenuClose}
+                                        anchorEl={sectionMenuAnchor}
+                                        open={Boolean(sectionMenuAnchor)}
+                                        onClose={handleSectionMenuClose}
                                         PaperProps={{ sx: { borderRadius: 2, minWidth: 160 } }}
                               >
                                         <MenuItem onClick={() => {
-                                                  if (contentMenuTarget) openEditContent(contentMenuTarget);
-                                                  handleContentMenuClose();
+                                                  if (sectionMenuTarget) openEditSection(sectionMenuTarget);
+                                                  handleSectionMenuClose();
                                         }}>
                                                   <EditIcon fontSize="small" sx={{ mr: 1.5 }} />
-                                                  {isRTL ? 'تعديل' : 'Edit'}
+                                                  {isRTL ? 'تعديل القسم' : 'Edit Section'}
                                         </MenuItem>
                                         <MenuItem onClick={() => {
-                                                  if (contentMenuTarget) handleDeleteContent(contentMenuTarget.id);
-                                                  handleContentMenuClose();
+                                                  if (sectionMenuTarget) handleDeleteSection(sectionMenuTarget.id);
+                                                  handleSectionMenuClose();
                                         }} sx={{ color: 'error.main' }}>
                                                   <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} />
-                                                  {isRTL ? 'حذف' : 'Delete'}
+                                                  {isRTL ? 'حذف القسم' : 'Delete Section'}
                                         </MenuItem>
                               </Menu>
 
-                              {/* ======================== CONTENT DIALOG ======================== */}
-                              <Dialog open={!!contentDialog} onClose={() => setContentDialog(null)} maxWidth="sm" fullWidth>
+                              {/* ======================== LESSON THREE-DOT MENU ======================== */}
+                              <Menu
+                                        anchorEl={lessonMenuAnchor}
+                                        open={Boolean(lessonMenuAnchor)}
+                                        onClose={handleLessonMenuClose}
+                                        PaperProps={{ sx: { borderRadius: 2, minWidth: 160 } }}
+                              >
+                                        <MenuItem onClick={() => {
+                                                  if (lessonMenuTarget) openEditLesson(lessonMenuTarget, lessonMenuTarget.sectionId);
+                                                  handleLessonMenuClose();
+                                        }}>
+                                                  <EditIcon fontSize="small" sx={{ mr: 1.5 }} />
+                                                  {isRTL ? 'تعديل الموضوع' : 'Edit Topic'}
+                                        </MenuItem>
+                                        <MenuItem onClick={() => {
+                                                  if (lessonMenuTarget) handleDeleteLesson(lessonMenuTarget.id);
+                                                  handleLessonMenuClose();
+                                        }} sx={{ color: 'error.main' }}>
+                                                  <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} />
+                                                  {isRTL ? 'حذف الموضوع' : 'Delete Topic'}
+                                        </MenuItem>
+                              </Menu>
+
+                              {/* ======================== SECTION DIALOG ======================== */}
+                              <Dialog open={!!sectionDialog} onClose={() => setSectionDialog(null)} maxWidth="sm" fullWidth>
                                         <DialogTitle fontWeight={700}>
-                                                  {contentDialog?.mode === 'add' ? (isRTL ? '➕ إضافة محتوى' : '➕ Add Content') : (isRTL ? '✏️ تعديل المحتوى' : '✏️ Edit Content')}
+                                                  {sectionDialog?.mode === 'add' ? (isRTL ? '➕ إضافة قسم' : '➕ Add Section') : (isRTL ? '✏️ تعديل القسم' : '✏️ Edit Section')}
                                         </DialogTitle>
                                         <DialogContent>
                                                   <Stack spacing={2} sx={{ mt: 1 }}>
                                                             <TextField label={isRTL ? 'العنوان بالعربية' : 'Title (Arabic)'} fullWidth required
-                                                                      value={contentForm.title_ar || ''}
-                                                                      onChange={e => setContentForm(p => ({ ...p, title_ar: e.target.value }))} />
+                                                                      value={sectionForm.title_ar || ''}
+                                                                      onChange={e => setSectionForm(p => ({ ...p, title_ar: e.target.value }))} />
                                                             <TextField label={isRTL ? 'العنوان بالإنجليزية' : 'Title (English)'} fullWidth required
-                                                                      value={contentForm.title_en || ''}
-                                                                      onChange={e => setContentForm(p => ({ ...p, title_en: e.target.value }))} />
-                                                            <TextField label={isRTL ? 'الوصف بالعربية' : 'Description (Arabic)'} fullWidth multiline rows={3}
-                                                                      value={contentForm.description_ar || ''}
-                                                                      onChange={e => setContentForm(p => ({ ...p, description_ar: e.target.value }))} />
-                                                            <TextField label={isRTL ? 'الوصف بالإنجليزية' : 'Description (English)'} fullWidth multiline rows={3}
-                                                                      value={contentForm.description_en || ''}
-                                                                      onChange={e => setContentForm(p => ({ ...p, description_en: e.target.value }))} />
+                                                                      value={sectionForm.title_en || ''}
+                                                                      onChange={e => setSectionForm(p => ({ ...p, title_en: e.target.value }))} />
                                                             <TextField label={isRTL ? 'الترتيب' : 'Order'} type="number" fullWidth
-                                                                      value={contentForm.content_order ?? 0}
-                                                                      onChange={e => setContentForm(p => ({ ...p, content_order: parseInt(e.target.value) || 0 }))} />
+                                                                      value={sectionForm.section_order ?? 0}
+                                                                      onChange={e => setSectionForm(p => ({ ...p, section_order: parseInt(e.target.value) || 0 }))} />
                                                   </Stack>
                                         </DialogContent>
                                         <DialogActions sx={{ px: 3, pb: 3 }}>
-                                                  <Button onClick={() => setContentDialog(null)}>{isRTL ? 'إلغاء' : 'Cancel'}</Button>
+                                                  <Button onClick={() => setSectionDialog(null)}>{isRTL ? 'إلغاء' : 'Cancel'}</Button>
                                                   <Button
                                                             variant="contained"
-                                                            onClick={handleSaveContent}
-                                                            disabled={addContent.isPending || updateContent.isPending}
+                                                            onClick={handleSaveSection}
+                                                            disabled={addSection.isPending || updateSection.isPending}
                                                   >
-                                                            {contentDialog?.mode === 'add' ? (isRTL ? 'إضافة' : 'Add') : (isRTL ? 'حفظ' : 'Save')}
+                                                            {sectionDialog?.mode === 'add' ? (isRTL ? 'إضافة' : 'Add') : (isRTL ? 'حفظ' : 'Save')}
+                                                  </Button>
+                                        </DialogActions>
+                              </Dialog>
+
+                              {/* ======================== LESSON DIALOG ======================== */}
+                              <Dialog open={!!lessonDialog} onClose={() => setLessonDialog(null)} maxWidth="sm" fullWidth>
+                                        <DialogTitle fontWeight={700}>
+                                                  {lessonDialog?.mode === 'add' ? (isRTL ? '➕ إضافة موضوع' : '➕ Add Topic') : (isRTL ? '✏️ تعديل الموضوع' : '✏️ Edit Topic')}
+                                        </DialogTitle>
+                                        <DialogContent>
+                                                  <Stack spacing={2} sx={{ mt: 1 }}>
+                                                            <TextField label={isRTL ? 'العنوان بالعربية' : 'Title (Arabic)'} fullWidth required
+                                                                      value={lessonForm.title_ar || ''}
+                                                                      onChange={e => setLessonForm(p => ({ ...p, title_ar: e.target.value }))} />
+                                                            <TextField label={isRTL ? 'العنوان بالإنجليزية' : 'Title (English)'} fullWidth required
+                                                                      value={lessonForm.title_en || ''}
+                                                                      onChange={e => setLessonForm(p => ({ ...p, title_en: e.target.value }))} />
+                                                            <TextField label={isRTL ? 'الوصف بالعربية' : 'Description (Arabic)'} fullWidth multiline rows={3}
+                                                                      value={lessonForm.description_ar || ''}
+                                                                      onChange={e => setLessonForm(p => ({ ...p, description_ar: e.target.value }))} />
+                                                            <TextField label={isRTL ? 'الوصف بالإنجليزية' : 'Description (English)'} fullWidth multiline rows={3}
+                                                                      value={lessonForm.description_en || ''}
+                                                                      onChange={e => setLessonForm(p => ({ ...p, description_en: e.target.value }))} />
+                                                            <TextField label={isRTL ? 'الترتيب' : 'Order'} type="number" fullWidth
+                                                                      value={lessonForm.lesson_order ?? 0}
+                                                                      onChange={e => setLessonForm(p => ({ ...p, lesson_order: parseInt(e.target.value) || 0 }))} />
+                                                  </Stack>
+                                        </DialogContent>
+                                        <DialogActions sx={{ px: 3, pb: 3 }}>
+                                                  <Button onClick={() => setLessonDialog(null)}>{isRTL ? 'إلغاء' : 'Cancel'}</Button>
+                                                  <Button
+                                                            variant="contained"
+                                                            onClick={handleSaveLesson}
+                                                            disabled={addLesson.isPending || updateLesson.isPending}
+                                                  >
+                                                            {lessonDialog?.mode === 'add' ? (isRTL ? 'إضافة' : 'Add') : (isRTL ? 'حفظ' : 'Save')}
                                                   </Button>
                                         </DialogActions>
                               </Dialog>

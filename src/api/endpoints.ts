@@ -6,6 +6,7 @@ export const ENDPOINTS = {
           AUTH: {
                     LOGIN: '/auth/login',
                     REGISTER: '/auth/register',
+                    REGISTER_TRAINER: '/auth/register-trainer',
                     REFRESH: '/auth/refresh',
                     LOGOUT: '/auth/logout',
                     LOGOUT_ALL: '/auth/logout-all',
@@ -65,8 +66,13 @@ export const ENDPOINTS = {
                     STATUS: (id: string) => `/workshops/${id}/status`,
                     STATISTICS: (id: string) => `/workshops/${id}/statistics`,
                     IS_FULL: (id: string) => `/workshops/${id}/is-full`,
-          CONTENT: (id: string) => `/workshops/${id}/content`,
-          CONTENT_ITEM: (workshopId: string, contentId: string) => `/workshops/${workshopId}/content/${contentId}`,
+                    SYLLABUS: (id: string) => `/workshops/${id}/syllabus`,
+                    SECTIONS: (id: string) => `/workshops/${id}/sections`,
+                    SECTION: (sectionId: string) => `/workshops/sections/${sectionId}`,
+                    REORDER_SECTIONS: (id: string) => `/workshops/${id}/sections/reorder`,
+                    LESSONS: (sectionId: string) => `/workshops/sections/${sectionId}/lessons`,
+                    LESSON: (lessonId: string) => `/workshops/lessons/${lessonId}`,
+                    REORDER_LESSONS: (sectionId: string) => `/workshops/sections/${sectionId}/lessons/reorder`,
           },
           BOOKINGS: {
                     BASE: '/bookings',

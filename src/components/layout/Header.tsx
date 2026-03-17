@@ -67,7 +67,7 @@ export default function Header() {
                     threshold: 0,
           });
 
-          const isHeaderNavRole = user && [UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER].includes(user.role as UserRole);
+          const isHeaderNavRole = !user || [UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER].includes(user.role as UserRole);
 
           const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null);
 
@@ -80,6 +80,12 @@ export default function Header() {
                     if ([UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER].includes(user.role as UserRole)) {
                               navItems.unshift({ key: 'home', labelKey: 'nav.home', path: '/home' });
                     }
+          } else {
+                    navItems = [
+                              { key: 'home', labelKey: 'nav.home', path: '/' },
+                              { key: 'courses', labelKey: 'nav.courses', path: '/courses' },
+                              { key: 'workshops', labelKey: 'nav.workshops', path: '/workshops' }
+                    ];
           }
 
           const MAX_VISIBLE_ITEMS = 6;
@@ -172,7 +178,7 @@ export default function Header() {
                                                                       src="/logo.png"
                                                                       alt={t('common.appName')}
                                                                       sx={{ width: '100%', maxWidth: '200px', display: { xs: 'none', md: 'block' }, cursor: 'pointer' }}
-                                                                      onClick={() => navigate(getDashboardPath(user?.role as UserRole))}
+                                                                      onClick={() => navigate(user ? getDashboardPath(user.role as UserRole) : '/')}
                                                             />
 
                                                             {!isMobile && (
@@ -267,7 +273,29 @@ export default function Header() {
                                         )}
 
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                  {/* Notifications */}
+                                                  {!user && (
+                                                            <>
+                                                                      <Tooltip title={locale === 'ar' ? 'English' : 'عربي'}>
+                                                                                <IconButton onClick={handleToggleLocale}>
+                                                                                          <Language fontSize="small" />
+                                                                                </IconButton>
+                                                                      </Tooltip>
+                                                                      <Tooltip title={themeMode === 'light' ? 'Dark Mode' : 'Light Mode'}>
+                                                                                <IconButton onClick={toggleTheme}>
+                                                                                          {themeMode === 'light' ? <DarkMode fontSize="small" /> : <LightMode fontSize="small" />}
+                                                                                </IconButton>
+                                                                      </Tooltip>
+                                                                      <Button variant="text" onClick={() => navigate('/login')} sx={{ fontWeight: 600 }}>
+                                                                                {locale === 'ar' ? 'دخول' : 'Login'}
+                                                                      </Button>
+                                                                      <Button variant="contained" onClick={() => navigate('/register')} sx={{ borderRadius: 2, fontWeight: 600 }}>
+                                                                                {locale === 'ar' ? 'حساب جديد' : 'Register'}
+                                                                      </Button>
+                                                            </>
+                                                  )}
+                                                  {user && (
+                                                            <>
+                                                                      {/* Notifications */}
                                                   <Tooltip title={t('nav.notifications')}>
                                                             <IconButton
                                                                       onClick={(e) => setNotifAnchorEl(e.currentTarget)}
@@ -405,6 +433,8 @@ export default function Header() {
                                                                       </MenuItem>
                                                             </Menu>
                                                   </Box>
+                                                            </>
+                                                  )}
                                         </Box>
                               </Toolbar>
                     </AppBar>

@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '../components/layout/AppLayout';
-import { AuthGuard, GuestGuard, RoleGuard } from '../components/guards/RouteGuards';
+import { AuthGuard, GuestGuard, RoleGuard, getDashboardPath } from '../components/guards/RouteGuards';
 import { UserRole } from '../types';
 
 // Auth pages
@@ -35,72 +35,79 @@ import CoursePlayerPage from '../features/courses/pages/CoursePlayerPage';
 import CourseManagePage from '../features/courses/pages/CourseManagePage';
 import CourseBuilderPage from '../features/courses/pages/CourseBuilderPage';
 import EnrollmentRequestsPage from '../features/requirements/pages/EnrollmentRequestsPage';
+import { useAuthStore } from '../store/authStore';
+
+const InitialRoute = () => {
+          const { isAuthenticated, user } = useAuthStore();
+          if (isAuthenticated && user) {
+                    return <Navigate to={getDashboardPath(user.role)} replace />;
+          }
+          return <TraineeHomePage />;
+};
 
 const router = createBrowserRouter([
           // --- Public / Guest routes ---
           { path: '/login', element: <GuestGuard><LoginPage /></GuestGuard> },
           { path: '/register', element: <GuestGuard><RegisterPage /></GuestGuard> },
 
-          // --- Protected routes ---
+          // --- Protected & Public routes within AppLayout ---
           {
                     path: '/',
-                    element: <AuthGuard><AppLayout /></AuthGuard>,
+                    element: <AppLayout />,
                     children: [
-                              { index: true, element: <Navigate to="/dashboard" replace /> },
+                              { index: true, element: <InitialRoute /> },
 
                               // Dashboards
-                              { path: 'home', element: <RoleGuard roles={[UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER]}><TraineeHomePage /></RoleGuard> },
-                              { path: 'dashboard', element: <TraineeDashboard /> },
-                              { path: 'dashboard/admin', element: <RoleGuard roles={[UserRole.SUPER_ADMIN]}><AdminDashboard /></RoleGuard> },
-                              { path: 'dashboard/manager', element: <RoleGuard roles={[UserRole.MANAGER]}><AdminDashboard /></RoleGuard> },
-                              { path: 'dashboard/trainer', element: <RoleGuard roles={[UserRole.TRAINER]}><TrainerDashboard /></RoleGuard> },
-                              { path: 'dashboard/trainee', element: <RoleGuard roles={[UserRole.TRAINEE]}><TraineeDashboard /></RoleGuard> },
+                              { path: 'home', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER]}><TraineeHomePage /></RoleGuard></AuthGuard> },
+                              { path: 'dashboard', element: <AuthGuard><TraineeDashboard /></AuthGuard> },
+                              { path: 'dashboard/admin', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN]}><AdminDashboard /></RoleGuard></AuthGuard> },
+                              { path: 'dashboard/manager', element: <AuthGuard><RoleGuard roles={[UserRole.MANAGER]}><AdminDashboard /></RoleGuard></AuthGuard> },
+                              { path: 'dashboard/trainer', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINER]}><TrainerDashboard /></RoleGuard></AuthGuard> },
+                              { path: 'dashboard/trainee', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINEE]}><TraineeDashboard /></RoleGuard></AuthGuard> },
 
-                              // Workshops
+                              // Workshops (Public and Protected)
                               { path: 'workshops', element: <WorkshopListPage /> },
-                              { path: 'workshops/:id/edit', element: <RoleGuard roles={[UserRole.TRAINER, UserRole.SUPER_ADMIN, UserRole.MANAGER]}><WorkshopBuilderPage /></RoleGuard> },
+                              { path: 'workshops/:id/edit', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINER, UserRole.SUPER_ADMIN, UserRole.MANAGER]}><WorkshopBuilderPage /></RoleGuard></AuthGuard> },
                               { path: 'workshops/:id', element: <WorkshopDetailPage /> },
-                              { path: 'bookmarks', element: <RoleGuard roles={[UserRole.TRAINEE]}><BookmarkedWorkshopsPage /></RoleGuard> },
+                              { path: 'bookmarks', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINEE]}><BookmarkedWorkshopsPage /></RoleGuard></AuthGuard> },
 
-                              // Courses
+                              // Courses (Public and Protected)
                               { path: 'courses', element: <CourseListPage /> },
-                              { path: 'courses/manage', element: <RoleGuard roles={[UserRole.TRAINER, UserRole.SUPER_ADMIN, UserRole.MANAGER]}><CourseManagePage /></RoleGuard> },
-                              { path: 'courses/:id/edit', element: <RoleGuard roles={[UserRole.TRAINER, UserRole.SUPER_ADMIN, UserRole.MANAGER]}><CourseBuilderPage /></RoleGuard> },
+                              { path: 'courses/manage', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINER, UserRole.SUPER_ADMIN, UserRole.MANAGER]}><CourseManagePage /></RoleGuard></AuthGuard> },
+                              { path: 'courses/:id/edit', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINER, UserRole.SUPER_ADMIN, UserRole.MANAGER]}><CourseBuilderPage /></RoleGuard></AuthGuard> },
                               { path: 'courses/:id', element: <CourseDetailPage /> },
-                              { path: 'courses/:id/learn', element: <CoursePlayerPage /> },
+                              { path: 'courses/:id/learn', element: <AuthGuard><CoursePlayerPage /></AuthGuard> },
 
                               // Bookings
-                              { path: 'bookings', element: <BookingListPage /> },
-                              { path: 'bookings/:id', element: <BookingDetailPage /> },
+                              { path: 'bookings', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.TRAINEE]}><BookingListPage /></RoleGuard></AuthGuard> },
+                              { path: 'bookings/:id', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER, UserRole.TRAINEE]}><BookingDetailPage /></RoleGuard></AuthGuard> },
 
                               // Users (SuperAdmin)
-                              { path: 'users', element: <RoleGuard roles={[UserRole.SUPER_ADMIN]}><UsersPage /></RoleGuard> },
+                              { path: 'users', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN]}><UsersPage /></RoleGuard></AuthGuard> },
 
                               // Managers (SuperAdmin)
-                              { path: 'managers', element: <RoleGuard roles={[UserRole.SUPER_ADMIN]}><ManagersPage /></RoleGuard> },
+                              { path: 'managers', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN]}><ManagersPage /></RoleGuard></AuthGuard> },
 
                               // Trainers (SuperAdmin / Manager)
-                              { path: 'trainers', element: <RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><TrainersPage /></RoleGuard> },
-
-
+                              { path: 'trainers', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><TrainersPage /></RoleGuard></AuthGuard> },
 
                               // Specializations (SuperAdmin)
-                              { path: 'specializations', element: <RoleGuard roles={[UserRole.SUPER_ADMIN]}><SpecializationsPage /></RoleGuard> },
+                              { path: 'specializations', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN]}><SpecializationsPage /></RoleGuard></AuthGuard> },
 
                               // Enrollment Requests (SuperAdmin / Manager)
-                              { path: 'enrollment-requests', element: <RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><EnrollmentRequestsPage /></RoleGuard> },
+                              { path: 'enrollment-requests', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><EnrollmentRequestsPage /></RoleGuard></AuthGuard> },
 
                               // Notifications
-                              { path: 'notifications', element: <NotificationsPage /> },
+                              { path: 'notifications', element: <AuthGuard><NotificationsPage /></AuthGuard> },
 
                               // Reviews
-                              { path: 'reviews', element: <ReviewsPage /> },
+                              { path: 'reviews', element: <AuthGuard><ReviewsPage /></AuthGuard> },
 
                               // Statistics (SuperAdmin / Manager)
-                              { path: 'statistics', element: <RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><StatisticsPage /></RoleGuard> },
+                              { path: 'statistics', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><StatisticsPage /></RoleGuard></AuthGuard> },
 
                               // Profile
-                              { path: 'profile', element: <ProfilePage /> },
+                              { path: 'profile', element: <AuthGuard><ProfilePage /></AuthGuard> },
 
                               // Unauthorized
                               { path: 'unauthorized', element: <div style={{ padding: 24, textAlign: 'center' }}><h1>⛔ Access Denied</h1></div> },

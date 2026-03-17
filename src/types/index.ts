@@ -137,6 +137,29 @@ export interface Specialization {
           updated_at: string;
 }
 
+export interface WorkshopLesson {
+          id: string;
+          section_id: string;
+          title_ar: string;
+          title_en: string;
+          description_ar?: string;
+          description_en?: string;
+          lesson_order: number;
+          created_at: string;
+          updated_at: string;
+}
+
+export interface WorkshopSection {
+          id: string;
+          workshop_id: string;
+          title_ar: string;
+          title_en: string;
+          section_order: number;
+          lessons?: WorkshopLesson[];
+          created_at: string;
+          updated_at: string;
+}
+
 export interface Workshop {
           id: string;
           title_ar: string;
@@ -167,6 +190,7 @@ export interface Workshop {
           trainer_name?: string;
           trainer_email?: string;
           trainer_avatar?: string;
+          trainer_user_id?: string;
           trainer_bio_ar?: string;
           trainer_bio_en?: string;
           trainer_type?: string;

@@ -140,56 +140,130 @@ export const useToggleBookmark = () => {
           });
 };
 
-// --- Syllabus Content Hooks ---
+// --- Syllabus (Sections & Lessons) Hooks ---
 
-export const useWorkshopContent = (workshopId: string) =>
+export const useWorkshopSyllabus = (workshopId: string) =>
           useQuery({
-                    queryKey: [...workshopKeys.all, 'content', workshopId],
-                    queryFn: () => workshopService.getContent(workshopId),
+                    queryKey: [...workshopKeys.all, 'syllabus', workshopId],
+                    queryFn: () => workshopService.getSyllabus(workshopId),
                     enabled: !!workshopId,
           });
 
-export const useAddWorkshopContent = () => {
+export const useAddWorkshopSection = () => {
           const qc = useQueryClient();
           return useMutation({
                     mutationFn: ({ workshopId, data }: { workshopId: string; data: Record<string, unknown> }) =>
-                              workshopService.addContent(workshopId, data),
-                    onSuccess: () => {
-                              qc.invalidateQueries({ queryKey: workshopKeys.all });
-                              toast.success('Content added successfully');
+                              workshopService.addSection(workshopId, data),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                              toast.success('Section added successfully');
                     },
                     onError: (error: any) => {
-                              toast.error(error.response?.data?.message || 'Failed to add content');
+                              toast.error(error.response?.data?.message || 'Failed to add section');
                     }
           });
 };
 
-export const useUpdateWorkshopContent = () => {
+export const useUpdateWorkshopSection = () => {
           const qc = useQueryClient();
           return useMutation({
-                    mutationFn: ({ workshopId, contentId, data }: { workshopId: string; contentId: string; data: Record<string, unknown> }) =>
-                              workshopService.updateContent(workshopId, contentId, data),
-                    onSuccess: () => {
-                              qc.invalidateQueries({ queryKey: workshopKeys.all });
-                              toast.success('Content updated successfully');
+                    mutationFn: ({ workshopId, sectionId, data }: { workshopId: string; sectionId: string; data: Record<string, unknown> }) =>
+                              workshopService.updateSection(sectionId, data),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                              toast.success('Section updated successfully');
                     },
                     onError: (error: any) => {
-                              toast.error(error.response?.data?.message || 'Failed to update content');
+                              toast.error(error.response?.data?.message || 'Failed to update section');
                     }
           });
 };
 
-export const useDeleteWorkshopContent = () => {
+export const useDeleteWorkshopSection = () => {
           const qc = useQueryClient();
           return useMutation({
-                    mutationFn: ({ workshopId, contentId }: { workshopId: string; contentId: string }) =>
-                              workshopService.deleteContent(workshopId, contentId),
-                    onSuccess: () => {
-                              qc.invalidateQueries({ queryKey: workshopKeys.all });
-                              toast.success('Content deleted successfully');
+                    mutationFn: ({ workshopId, sectionId }: { workshopId: string; sectionId: string }) =>
+                              workshopService.deleteSection(sectionId),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                              toast.success('Section deleted successfully');
                     },
                     onError: (error: any) => {
-                              toast.error(error.response?.data?.message || 'Failed to delete content');
+                              toast.error(error.response?.data?.message || 'Failed to delete section');
+                    }
+          });
+};
+
+export const useReorderWorkshopSections = () => {
+          const qc = useQueryClient();
+          return useMutation({
+                    mutationFn: ({ workshopId, sections }: { workshopId: string; sections: { id: string; order: number }[] }) =>
+                              workshopService.reorderSections(workshopId, sections),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                    },
+                    onError: (error: any) => {
+                              toast.error(error.response?.data?.message || 'Failed to reorder sections');
+                    }
+          });
+};
+
+export const useAddWorkshopLesson = () => {
+          const qc = useQueryClient();
+          return useMutation({
+                    // data includes sectionId inside it for the request, or we pass sectionId separately
+                    mutationFn: ({ workshopId, sectionId, data }: { workshopId: string; sectionId: string; data: Record<string, unknown> }) =>
+                              workshopService.addLesson(sectionId, data),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                              toast.success('Topic added successfully');
+                    },
+                    onError: (error: any) => {
+                              toast.error(error.response?.data?.message || 'Failed to add topic');
+                    }
+          });
+};
+
+export const useUpdateWorkshopLesson = () => {
+          const qc = useQueryClient();
+          return useMutation({
+                    mutationFn: ({ workshopId, lessonId, data }: { workshopId: string; lessonId: string; data: Record<string, unknown> }) =>
+                              workshopService.updateLesson(lessonId, data),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                              toast.success('Topic updated successfully');
+                    },
+                    onError: (error: any) => {
+                              toast.error(error.response?.data?.message || 'Failed to update topic');
+                    }
+          });
+};
+
+export const useDeleteWorkshopLesson = () => {
+          const qc = useQueryClient();
+          return useMutation({
+                    mutationFn: ({ workshopId, lessonId }: { workshopId: string; lessonId: string }) =>
+                              workshopService.deleteLesson(lessonId),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                              toast.success('Topic deleted successfully');
+                    },
+                    onError: (error: any) => {
+                              toast.error(error.response?.data?.message || 'Failed to delete topic');
+                    }
+          });
+};
+
+export const useReorderWorkshopLessons = () => {
+          const qc = useQueryClient();
+          return useMutation({
+                    mutationFn: ({ workshopId, sectionId, lessons }: { workshopId: string; sectionId: string; lessons: { id: string; order: number }[] }) =>
+                              workshopService.reorderLessons(sectionId, lessons),
+                    onSuccess: (_, variables) => {
+                              qc.invalidateQueries({ queryKey: [...workshopKeys.all, 'syllabus', variables.workshopId] });
+                    },
+                    onError: (error: any) => {
+                              toast.error(error.response?.data?.message || 'Failed to reorder topics');
                     }
           });
 };

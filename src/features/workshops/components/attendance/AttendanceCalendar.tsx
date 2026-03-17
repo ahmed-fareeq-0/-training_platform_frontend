@@ -7,11 +7,13 @@ import dayjs, { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { useTraineeAttendance } from '../../hooks/useAttendance';
 import { AttendanceStatus } from '../../../../types';
+import { useAuthStore } from '../../../../store/authStore';
 
 export default function AttendanceCalendar({ workshopId }: { workshopId: string }) {
           const { t } = useTranslation();
           const theme = useTheme();
-          const { data: attendanceData, isLoading } = useTraineeAttendance(workshopId);
+          const { user } = useAuthStore();
+          const { data: attendanceData, isLoading } = useTraineeAttendance(workshopId, { enabled: !!user });
 
           // Map dates to status for easy lookup
           const attendanceMap = new Map<string, AttendanceStatus>();

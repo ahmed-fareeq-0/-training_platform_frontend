@@ -52,21 +52,22 @@ export const getNavItems = (userRole: UserRole): NavItem[] => {
                     { key: 'dashboard', labelKey: 'nav.dashboard', icon: <DashboardIcon />, path: getDashboardPath(userRole) },
                     { key: 'workshops', labelKey: 'nav.workshops', icon: <WorkshopsIcon />, path: '/workshops' },
                     { key: 'courses', labelKey: 'nav.courses', icon: <CoursesIcon />, path: '/courses' },
-                    { key: 'bookings', labelKey: 'nav.bookings', icon: <BookingsIcon />, path: '/bookings' },
           ];
 
           if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.MANAGER || userRole === UserRole.TRAINER) {
-                    items.splice(3, 0, { key: 'course-manage', labelKey: 'nav.courseManage', icon: <CoursesIcon />, path: '/courses/manage' });
+                    items.push({ key: 'course-manage', labelKey: 'nav.courseManage', icon: <CoursesIcon />, path: '/courses/manage' });
           }
 
           if (userRole === UserRole.TRAINEE) {
                     items.push(
+                              { key: 'bookings', labelKey: 'nav.bookings', icon: <BookingsIcon />, path: '/bookings' },
                               { key: 'bookmarks', labelKey: 'nav.bookmarks', icon: <Favorite />, path: '/bookmarks' },
                     );
           }
 
           if (userRole === UserRole.SUPER_ADMIN) {
                     items.push(
+                              { key: 'bookings', labelKey: 'nav.bookings', icon: <BookingsIcon />, path: '/bookings' },
                               { key: 'users', labelKey: 'nav.users', icon: <UsersIcon />, path: '/users' },
                               { key: 'managers', labelKey: 'nav.managers', icon: <ManagersIcon />, path: '/managers' },
                               { key: 'trainers', labelKey: 'nav.trainers', icon: <TrainersIcon />, path: '/trainers' },
@@ -77,6 +78,7 @@ export const getNavItems = (userRole: UserRole): NavItem[] => {
 
           if (userRole === UserRole.MANAGER) {
                     items.push(
+                              { key: 'bookings', labelKey: 'nav.bookings', icon: <BookingsIcon />, path: '/bookings' },
                               { key: 'trainers', labelKey: 'nav.trainers', icon: <TrainersIcon />, path: '/trainers' },
                               { key: 'enrollment-requests', labelKey: 'nav.enrollmentRequests', icon: <EnrollmentIcon />, path: '/enrollment-requests' },
                     );

@@ -15,6 +15,21 @@ export interface RegisterPayload {
           role: string;
 }
 
+export interface RegisterTrainerPayload extends Omit<RegisterPayload, 'role'> {
+          trainer_type: 'professional' | 'university_prof';
+          category_id: string;
+          experience_years: number;
+          bio_ar?: string;
+          bio_en?: string;
+          
+          job_title?: string;
+          core_skills?: string;
+          
+          academic_degree?: string;
+          academic_specialization?: string;
+          academic_title?: string;
+}
+
 export interface ChangePasswordPayload {
           oldPassword: string;
           newPassword: string;
@@ -29,6 +44,11 @@ const authService = {
           register: async (data: RegisterPayload) => {
                     const res = await api.post<ApiResponse<LoginResponse>>(ENDPOINTS.AUTH.REGISTER, data);
                     return res.data.data;
+          },
+
+          registerTrainer: async (data: RegisterTrainerPayload) => {
+                    const res = await api.post<ApiResponse<null>>(ENDPOINTS.AUTH.REGISTER_TRAINER, data);
+                    return res.data; // we want the message from the api response wrapper
           },
 
           getMe: async () => {

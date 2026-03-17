@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Card, CardContent, useTheme, alpha, Button, CircularProgress, Alert, AlertTitle } from '@mui/material';
-import { School, EventSeat, Notifications, ArrowForward, Warning, Info } from '@mui/icons-material';
+import { School, Notifications, ArrowForward, Info } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { useUIStore } from '../../../store/uiStore';
 import { useMyWorkshops } from '../../workshops/hooks/useWorkshops';
@@ -21,12 +21,10 @@ export default function TrainerDashboard() {
                     queryFn: () => trainerService.getMe()
           });
 
-          const isProfileIncomplete = !trainerProfile || !trainerProfile.specialization_id;
           const isPendingApproval = trainerProfile && !trainerProfile.is_approved;
 
           const quickActions = [
                     { title: locale === 'ar' ? 'الورش الخاصة بي' : 'My Workshops', icon: <School />, path: '/workshops', color: theme.palette.primary.main, desc: locale === 'ar' ? 'قم بإدارة ورشك التدريبية' : 'Manage your training workshops' },
-                    { title: locale === 'ar' ? 'البحث في الحجوزات' : 'Find Bookings', icon: <EventSeat />, path: '/bookings', color: theme.palette.info.main, desc: locale === 'ar' ? 'عرض حجوزات المتدربين' : 'View trainee bookings' },
                     { title: locale === 'ar' ? 'الإشعارات' : 'Notifications', icon: <Notifications />, path: '/notifications', color: theme.palette.warning.main, desc: locale === 'ar' ? 'تحقق من آخر التحديثات' : 'Check latest updates' },
           ];
 
@@ -36,19 +34,7 @@ export default function TrainerDashboard() {
                                         {locale === 'ar' ? 'لوحة تحكم المدرب' : 'Trainer Dashboard'}
                               </Typography>
 
-                              {isProfileIncomplete && (
-                                        <Alert severity="warning" icon={<Warning />} sx={{ mb: 4, borderRadius: 3 }}>
-                                                  <AlertTitle>{locale === 'ar' ? 'أكمل ملفك الشخصي' : 'Complete Your Profile'}</AlertTitle>
-                                                  {locale === 'ar' ? 'يرجى إكمال ملفك الشخصي واختيار تخصصك من صفحة الملف الشخصي. تخصصك يحدد تصنيف ورشك التدريبية.' : 'Please complete your profile and select your specialization from the profile page. Your specialization determines the category for your workshops.'}
-                                                  <Box sx={{ mt: 2 }}>
-                                                            <Button variant="outlined" color="warning" size="small" onClick={() => navigate('/profile')}>
-                                                                      {locale === 'ar' ? 'إكمال الملف الشخصي' : 'Complete Profile'}
-                                                            </Button>
-                                                  </Box>
-                                        </Alert>
-                              )}
-
-                              {!isProfileIncomplete && isPendingApproval && (
+                              {isPendingApproval && (
                                         <Alert severity="info" icon={<Info />} sx={{ mb: 4, borderRadius: 3 }}>
                                                   <AlertTitle>{locale === 'ar' ? 'في انتظار الموافقة' : 'Pending Approval'}</AlertTitle>
                                                   {locale === 'ar' ? 'حسابك كمدرب قيد المراجعة حالياً من قبل الإدارة. سيتم إشعارك فور الموافقة.' : 'Your trainer account is currently under review by the administration. You will be notified upon approval.'}

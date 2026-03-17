@@ -2,18 +2,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import notificationService from '../../../api/services/notification.service';
 import toast from 'react-hot-toast';
 import { useUIStore } from '../../../store/uiStore';
+import { useAuthStore } from '../../../store/authStore';
 
 export const useNotifications = (page: number = 1, limit: number = 30) => {
+          const { isAuthenticated } = useAuthStore();
           return useQuery({
                     queryKey: ['notifications', page],
                     queryFn: () => notificationService.getAll({ page, limit }),
+                    enabled: isAuthenticated,
           });
 };
 
 export const useUnreadCount = () => {
+          const { isAuthenticated } = useAuthStore();
           return useQuery({
                     queryKey: ['notifications', 'unread'],
                     queryFn: notificationService.getUnreadCount,
+                    enabled: isAuthenticated,
           });
 };
 

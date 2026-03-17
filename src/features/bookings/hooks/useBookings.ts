@@ -43,11 +43,11 @@ export const useWorkshopBookings = (workshopId: string, filters?: BookingFilters
                     enabled: !!workshopId,
           });
 
-export const useCanBook = (workshopId: string) =>
+export const useCanBook = (workshopId: string, options?: { enabled?: boolean }) =>
           useQuery({
                     queryKey: bookingKeys.canBook(workshopId),
                     queryFn: () => bookingService.canBook(workshopId),
-                    enabled: !!workshopId,
+                    enabled: options?.enabled !== undefined ? options.enabled && !!workshopId : !!workshopId,
           });
 
 export const useRevenue = (params?: { workshop_id?: string }) =>

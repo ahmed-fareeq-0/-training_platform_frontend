@@ -13,7 +13,7 @@ import { useAuthStore } from '../store/authStore';
 import '../i18n';
 
 // React Query client
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
           defaultOptions: {
                     queries: {
                               retry: 1,

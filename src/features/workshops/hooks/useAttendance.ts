@@ -24,11 +24,11 @@ export const useWorkshopAttendance = (workshopId: string, month?: string) => {
           });
 };
 
-export const useTraineeAttendance = (workshopId: string) => {
+export const useTraineeAttendance = (workshopId: string, options?: { enabled?: boolean }) => {
           return useQuery({
                     queryKey: attendanceKeys.trainee(workshopId),
                     queryFn: () => attendanceService.getTraineeAttendance(workshopId),
-                    enabled: !!workshopId,
+                    enabled: options?.enabled !== undefined ? options.enabled && !!workshopId : !!workshopId,
           });
 };
 

@@ -6,7 +6,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useNavigate } from 'react-router-dom';
-import { usePublishedCourses } from '../hooks/useCourses';
+import { usePublishedCourses, useMyCourses } from '../hooks/useCourses';
 import { useSpecializations } from '../../specializations/hooks/useSpecializations';
 import { useAuthStore } from '../../../store/authStore';
 import { useUIStore } from '../../../store/uiStore';
@@ -21,15 +21,20 @@ const CourseListPage: React.FC = () => {
           const [search, setSearch] = useState('');
           const [specFilter, setSpecFilter] = useState('');
 
-          const { data, isLoading } = usePublishedCourses({
+          const isTrainer = user?.role === UserRole.TRAINER;
+
+          const { data: publishedData, isLoading: loadingPublished } = usePublishedCourses({
                     page,
                     limit: 12,
                     specialization_id: specFilter || undefined,
           });
+          const { data: myCoursesData, isLoading: loadingMy } = useMyCourses();
           const { data: specializations } = useSpecializations();
 
-          const courses: Course[] = data?.data || [];
-          const totalPages = data?.pagination?.totalPages || 1;
+          // Trainers see only their own courses; others see all published
+          const courses: Course[] = isTrainer ? (myCoursesData || []) : (publishedData?.data || []);
+          const isLoading = isTrainer ? loadingMy : loadingPublished;
+          const totalPages = isTrainer ? 1 : (publishedData?.pagination?.totalPages || 1);
           const specList = (specializations as any)?.data || specializations || [];
 
           const isAdminOrTrainer = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER || user?.role === UserRole.TRAINER;

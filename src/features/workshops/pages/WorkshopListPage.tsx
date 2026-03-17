@@ -10,7 +10,7 @@ import {
           Search, CalendarMonth, LocationOn, MoreVert, Delete,
           ViewModule, ViewList, SearchOff
 } from '@mui/icons-material';
-import { useUpcomingWorkshops, useDeleteWorkshop } from '../hooks/useWorkshops';
+import { useUpcomingWorkshops, useMyWorkshops, useDeleteWorkshop } from '../hooks/useWorkshops';
 import { useQuery } from '@tanstack/react-query';
 import specializationService from '../../../api/services/specialization.service';
 import StatusBadge from '../../../components/ui/StatusBadge';
@@ -46,11 +46,19 @@ export default function WorkshopListPage() {
           });
           const specializations = specData?.data || [];
 
-          const { data, isLoading } = useUpcomingWorkshops({
+          const isTrainer = user?.role === UserRole.TRAINER;
+
+          const upcomingFilters = {
                     page,
                     limit: 12,
                     ...(specializationId ? { specialization_id: specializationId } : {})
-          });
+          };
+          const { data: upcomingData, isLoading: loadingUpcoming } = useUpcomingWorkshops(upcomingFilters);
+          const { data: myData, isLoading: loadingMy } = useMyWorkshops(upcomingFilters);
+
+          // Trainers see only their own workshops; others see all upcoming
+          const data = isTrainer ? myData : upcomingData;
+          const isLoading = isTrainer ? loadingMy : loadingUpcoming;
           const workshops = data?.data || [];
           const pagination = data?.pagination;
 

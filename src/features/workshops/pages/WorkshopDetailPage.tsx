@@ -22,7 +22,7 @@ import toast from 'react-hot-toast';
 
 import dayjs from 'dayjs';
 
-import { useWorkshopDetail, useWorkshopAvailability, useUpdateWorkshopStatus, useWorkshopContent } from '../hooks/useWorkshops';
+import { useWorkshopDetail, useWorkshopAvailability, useUpdateWorkshopStatus, useWorkshopSyllabus } from '../hooks/useWorkshops';
 import { useCreateBooking, useCanBook } from '../../bookings/hooks/useBookings';
 import { useUIStore } from '../../../store/uiStore';
 import { useAuthStore } from '../../../store/authStore';
@@ -68,8 +68,8 @@ export default function WorkshopDetailPage() {
 
           const { data: workshop, isLoading, error } = useWorkshopDetail(id!);
           const { data: availability } = useWorkshopAvailability(id!);
-          const { data: canBookData } = useCanBook(id!);
-          const { data: syllabusItems = [] } = useWorkshopContent(id!);
+          const { data: canBookData } = useCanBook(id!, { enabled: !!user });
+          const { data: syllabusItems = [] } = useWorkshopSyllabus(id!);
           const createBooking = useCreateBooking();
           const updateStatus = useUpdateWorkshopStatus();
 
@@ -315,9 +315,9 @@ export default function WorkshopDetailPage() {
                                                                                 {locale === 'ar' ? 'لا يوجد محتوى منهج دراسي بعد.' : 'No syllabus content available yet.'}
                                                                       </Typography>
                                                             ) : (
-                                                                      syllabusItems.map((item: any, idx: number) => (
+                                                                      syllabusItems.map((section: any, idx: number) => (
                                                                                 <Accordion
-                                                                                          key={item.id}
+                                                                                          key={section.id}
                                                                                           sx={{
                                                                                                     borderRadius: '12px !important',
                                                                                                     border: `1px solid ${theme.palette.divider}`,
@@ -336,13 +336,46 @@ export default function WorkshopDetailPage() {
                                                                                           >
                                                                                                     <Chip label={`${idx + 1}`} size="small" color="primary" sx={{ fontWeight: 700, minWidth: 28 }} />
                                                                                                     <Typography fontWeight={700} sx={{ fontSize: '1rem' }}>
-                                                                                                              {locale === 'ar' ? (item.title_ar || item.title_en) : (item.title_en || item.title_ar)}
+                                                                                                              {getField(section.title_ar, section.title_en)}
                                                                                                     </Typography>
                                                                                           </AccordionSummary>
                                                                                           <AccordionDetails sx={{ p: 3 }}>
-                                                                                                    <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8 }}>
-                                                                                                              {(locale === 'ar' ? (item.description_ar || item.description_en) : (item.description_en || item.description_ar)) || (locale === 'ar' ? 'لا يوجد وصف' : 'No description')}
-                                                                                                    </Typography>
+                                                                                                    {(section.description_ar || section.description_en) && (
+                                                                                                              <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-line', lineHeight: 1.8, mb: 2 }}>
+                                                                                                                        {getField(section.description_ar, section.description_en)}
+                                                                                                              </Typography>
+                                                                                                    )}
+                                                                                                    {section.lessons && section.lessons.length > 0 ? (
+                                                                                                              <Stack spacing={1.5} sx={{ mt: 1 }}>
+                                                                                                                        {section.lessons.map((lesson: any, lIdx: number) => (
+                                                                                                                                  <Box key={lesson.id} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
+                                                                                                                                            <Box sx={{
+                                                                                                                                                      width: 24, height: 24, borderRadius: '50%',
+                                                                                                                                                      bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                                                                                                                      color: theme.palette.primary.main,
+                                                                                                                                                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                                                                                                                      fontSize: '0.75rem', fontWeight: 600, flexShrink: 0, mt: 0.3
+                                                                                                                                            }}>
+                                                                                                                                                      {lIdx + 1}
+                                                                                                                                            </Box>
+                                                                                                                                            <Box>
+                                                                                                                                                      <Typography variant="body2" fontWeight={600} color="text.primary">
+                                                                                                                                                                {getField(lesson.title_ar, lesson.title_en)}
+                                                                                                                                                      </Typography>
+                                                                                                                                                      {(lesson.description_ar || lesson.description_en) && (
+                                                                                                                                                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                                                                                                                                                          {getField(lesson.description_ar, lesson.description_en)}
+                                                                                                                                                                </Typography>
+                                                                                                                                                      )}
+                                                                                                                                            </Box>
+                                                                                                                                  </Box>
+                                                                                                                        ))}
+                                                                                                              </Stack>
+                                                                                                    ) : (
+                                                                                                              <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                                                                                                        {locale === 'ar' ? 'لا توجد مواضيع في هذا القسم.' : 'No topics in this section.'}
+                                                                                                              </Typography>
+                                                                                                    )}
                                                                                           </AccordionDetails>
                                                                                 </Accordion>
                                                                       ))
@@ -356,11 +389,11 @@ export default function WorkshopDetailPage() {
                                                                                 <AttendanceCalendar workshopId={id!} />
                                                                       )}
 
-                                                                      {(isAdminOrManager || workshop.trainer_id === user?.id) && (
+                                                                      {(isAdminOrManager || workshop.trainer_user_id === user?.id) && (
                                                                                 <DailyAttendanceManager workshopId={id!} />
                                                                       )}
 
-                                                                      {user?.role !== UserRole.TRAINEE && !isAdminOrManager && workshop.trainer_id !== user?.id && (
+                                                                      {user?.role !== UserRole.TRAINEE && !isAdminOrManager && workshop.trainer_user_id !== user?.id && (
                                                                                 <Alert severity="info" sx={{ borderRadius: 3 }}>
                                                                                           {locale === 'ar' ? 'سجل حضور الورشة غير متاح لحسابك.' : 'Attendance records are not available for your account.'}
                                                                                 </Alert>

@@ -27,6 +27,9 @@ export const useAuthStore = create<AuthState>((set) => ({
           },
 
           logout: () => {
+                    import('../app/Providers').then(({ queryClient }) => {
+                              queryClient.clear();
+                    });
                     clearTokens();
                     set({ user: null, isAuthenticated: false, isLoading: false });
           },
