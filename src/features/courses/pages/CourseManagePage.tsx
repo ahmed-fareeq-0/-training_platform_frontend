@@ -397,7 +397,7 @@ const CourseManagePage: React.FC = () => {
                                                                       </Box>
                                                                       <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                                                                                 {/* Entity Switcher */}
-                                                                                <ButtonGroup variant="outlined" sx={{ borderRadius: 2 }}>
+                                                                                <ButtonGroup variant="outlined" sx={{ borderRadius: 5 }}>
                                                                                           <Button
                                                                                                     onClick={() => handleEntitySwitch('courses')}
                                                                                                     variant={entityType === 'courses' ? 'contained' : 'outlined'}

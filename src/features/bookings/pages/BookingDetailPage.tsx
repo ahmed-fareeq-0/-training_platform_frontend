@@ -7,9 +7,11 @@ import {
 } from '@mui/material';
 import {
           ArrowBack, Email, Phone, CheckCircle, Cancel,
-          EventAvailable, MoneyOff, Person, QrCode
+          EventAvailable, MoneyOff, Person, QrCode,
+          CalendarMonth, AccessTime, LocationOn, School
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
+import { QRCodeSVG } from 'qrcode.react';
 
 import {
           useBookingDetail, useConfirmBooking, useCancelBooking,
@@ -30,6 +32,7 @@ export default function BookingDetailPage() {
           const { locale } = useUIStore();
           const { user } = useAuthStore();
           const isAdmin = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER;
+          const canManageBooking = isAdmin || user?.role === UserRole.TRAINER;
 
           const { data: booking, isLoading } = useBookingDetail(id!);
 
@@ -94,7 +97,7 @@ export default function BookingDetailPage() {
                               );
                     }
 
-                    if (booking.status === BookingStatus.CONFIRMED && isAdmin) {
+                    if (booking.status === BookingStatus.CONFIRMED && canManageBooking) {
                               actions.push(
                                         <Button key="attended" variant="contained" color="success" startIcon={<EventAvailable />} onClick={() => setActionDialog({ open: true, type: 'attended' })}>
                                                   {locale === 'ar' ? 'تسجيل حضور' : 'Mark Attended'}
@@ -133,61 +136,113 @@ export default function BookingDetailPage() {
           };
 
           return (
-                    <Box>
-                              <Button startIcon={<ArrowBack />} onClick={() => navigate('/bookings')} sx={{ mb: 2 }}>
+                    <Box sx={{ mx: 'auto', py: { xs: 2, md: 4 } }}>
+                              {/* <Button startIcon={<ArrowBack />} onClick={() => navigate('/bookings')} sx={{ mb: 3 }}>
                                         {t('common.back')}
-                              </Button>
+                              </Button> */}
 
-                              <Typography variant="h4" fontWeight={700} gutterBottom>
+                              <Typography variant="h4" fontWeight={800} gutterBottom>
                                         {locale === 'ar' ? 'تفاصيل الحجز' : 'Booking Details'} #{booking.seat_number}
                               </Typography>
 
                               {renderActions()}
 
-                              <Grid container spacing={3}>
+                              <Grid container spacing={4} alignItems="stretch">
+                                        {/* Left Column: Essential Info */}
                                         <Grid size={{ xs: 12, md: 8 }}>
-                                                  <Card sx={{ height: '100%' }}>
-                                                            <CardContent sx={{ p: 4 }}>
-                                                                      <Typography variant="h6" fontWeight={600} gutterBottom>
+                                                  <Card sx={{ height: '100%', borderRadius: 2 }}>
+                                                            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                                                                      <Typography variant="overline" color="primary.main" fontWeight={700}>
                                                                                 {locale === 'ar' ? 'معلومات الورشة' : 'Workshop Information'}
                                                                       </Typography>
-                                                                      <Typography variant="h5" color="primary.main" fontWeight={700} sx={{ mb: 3 }}>
+                                                                      <Typography variant="h5" fontWeight={700} sx={{ mt: 1, mb: 4 }}>
                                                                                 {getField(booking.workshop?.title_ar, booking.workshop?.title_en)}
                                                                       </Typography>
 
-                                                                      <Grid container spacing={2}>
+                                                                      <Grid container spacing={3}>
                                                                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                                                                          <Typography variant="caption" color="text.secondary">{locale === 'ar' ? 'تاريخ الورشة' : 'Workshop Date'}</Typography>
-                                                                                          <Typography variant="body1" fontWeight={500}>{dayjs(booking.workshop?.start_date).format('DD MMM YYYY, HH:mm')}</Typography>
+                                                                                          <Box sx={{ display: 'flex', gap: 2 }}>
+                                                                                                    <CalendarMonth color="action" />
+                                                                                                    <Box>
+                                                                                                              <Typography variant="caption" color="text.secondary" display="block">{locale === 'ar' ? 'تاريخ الورشة' : 'Date'}</Typography>
+                                                                                                              <Typography variant="body1" fontWeight={600}>
+                                                                                                                        {dayjs(booking.workshop?.start_date).format('DD MMM YYYY')}
+                                                                                                              </Typography>
+                                                                                                    </Box>
+                                                                                          </Box>
                                                                                 </Grid>
+
                                                                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                                                                          <Typography variant="caption" color="text.secondary">{locale === 'ar' ? 'موقع الورشة' : 'Location'}</Typography>
-                                                                                          <Typography variant="body1" fontWeight={500}>{getField(booking.workshop?.location_ar, booking.workshop?.location_en) || '—'}</Typography>
+                                                                                          <Box sx={{ display: 'flex', gap: 2 }}>
+                                                                                                    <AccessTime color="action" />
+                                                                                                    <Box>
+                                                                                                              <Typography variant="caption" color="text.secondary" display="block">{locale === 'ar' ? 'وقت الورشة' : 'Session Time'}</Typography>
+                                                                                                              <Typography variant="body1" fontWeight={600}>
+                                                                                                                        {booking.workshop?.session_start_time ? `${booking.workshop.session_start_time} - ${booking.workshop.session_end_time || ''}` : '—'}
+                                                                                                              </Typography>
+                                                                                                    </Box>
+                                                                                          </Box>
                                                                                 </Grid>
+
                                                                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                                                                          <Typography variant="caption" color="text.secondary">{locale === 'ar' ? 'تاريخ الحجز' : 'Booking Date'}</Typography>
-                                                                                          <Typography variant="body1" fontWeight={500}>{dayjs(booking.created_at).format('DD MMM YYYY, HH:mm')}</Typography>
+                                                                                          <Box sx={{ display: 'flex', gap: 2 }}>
+                                                                                                    <LocationOn color="action" />
+                                                                                                    <Box>
+                                                                                                              <Typography variant="caption" color="text.secondary" display="block">{locale === 'ar' ? 'الموقع' : 'Location'}</Typography>
+                                                                                                              <Typography variant="body1" fontWeight={600}>
+                                                                                                                        {getField(booking.workshop?.location_ar, booking.workshop?.location_en) || '—'}
+                                                                                                              </Typography>
+                                                                                                    </Box>
+                                                                                          </Box>
                                                                                 </Grid>
+
                                                                                 <Grid size={{ xs: 12, sm: 6 }}>
-                                                                                          <Typography variant="caption" color="text.secondary">{locale === 'ar' ? 'حالة الحجز' : 'Booking Status'}</Typography>
-                                                                                          <Box sx={{ mt: 0.5 }}><StatusBadge status={booking.status} /></Box>
+                                                                                          <Box sx={{ display: 'flex', gap: 2 }}>
+                                                                                                    <School color="action" />
+                                                                                                    <Box>
+                                                                                                              <Typography variant="caption" color="text.secondary" display="block">{locale === 'ar' ? 'المدرب' : 'Trainer'}</Typography>
+                                                                                                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                                                                                                        {booking.trainer?.profile_image && (
+                                                                                                                                  <Avatar src={booking.trainer.profile_image} sx={{ width: 24, height: 24 }} />
+                                                                                                                        )}
+                                                                                                                        <Typography variant="body1" fontWeight={600}>
+                                                                                                                                  {booking.trainer?.name || '—'}
+                                                                                                                        </Typography>
+                                                                                                              </Box>
+                                                                                                    </Box>
+                                                                                          </Box>
                                                                                 </Grid>
                                                                       </Grid>
 
-                                                                      <Divider sx={{ my: 3 }} />
+                                                                      <Divider sx={{ my: 4 }} />
 
-                                                                      {isAdmin && booking.user && (
-                                                                                <Box>
-                                                                                          <Typography variant="h6" fontWeight={600} gutterBottom>
-                                                                                                    {locale === 'ar' ? 'معلومات المتدرب' : 'Trainee Information'}
+                                                                      <Typography variant="overline" color="primary.main" fontWeight={700}>
+                                                                                {locale === 'ar' ? 'معلومات الحجز' : 'Booking Information'}
+                                                                      </Typography>
+                                                                      <Grid container spacing={3} sx={{ mt: 1 }}>
+                                                                                <Grid size={{ xs: 12, sm: 6 }}>
+                                                                                          <Typography variant="caption" color="text.secondary" display="block">{locale === 'ar' ? 'تاريخ الحجز' : 'Booking Date'}</Typography>
+                                                                                          <Typography variant="body1" fontWeight={600}>{dayjs(booking.created_at).format('DD MMM YYYY, HH:mm')}</Typography>
+                                                                                </Grid>
+                                                                                <Grid size={{ xs: 12, sm: 6 }}>
+                                                                                          <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>{locale === 'ar' ? 'الحالة' : 'Status'}</Typography>
+                                                                                          <StatusBadge status={booking.status} />
+                                                                                </Grid>
+                                                                      </Grid>
+
+                                                                      {canManageBooking && booking.user && (
+                                                                                <>
+                                                                                          <Divider sx={{ my: 4 }} />
+                                                                                          <Typography variant="overline" color="primary.main" fontWeight={700}>
+                                                                                                    {locale === 'ar' ? 'بيانات المتدرب' : 'Trainee Details'}
                                                                                           </Typography>
                                                                                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
-                                                                                                    <Avatar sx={{ width: 56, height: 56, bgcolor: theme.palette.secondary.main }}>
+                                                                                                    <Avatar src={booking.user.profile_image} sx={{ width: 56, height: 56, bgcolor: theme.palette.secondary.main }}>
                                                                                                               {booking.user.full_name?.charAt(0)}
                                                                                                     </Avatar>
                                                                                                     <Box>
-                                                                                                              <Typography variant="body1" fontWeight={600}>{booking.user.full_name}</Typography>
-                                                                                                              <Box sx={{ display: 'flex', gap: 2, color: 'text.secondary', mt: 0.5 }}>
+                                                                                                              <Typography variant="body1" fontWeight={700}>{booking.user.full_name}</Typography>
+                                                                                                              <Box sx={{ display: 'flex', gap: 2, color: 'text.secondary', mt: 0.5, flexWrap: 'wrap' }}>
                                                                                                                         <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                                                                                                                   <Email fontSize="small" /> {booking.user.email}
                                                                                                                         </Typography>
@@ -199,30 +254,84 @@ export default function BookingDetailPage() {
                                                                                                               </Box>
                                                                                                     </Box>
                                                                                           </Box>
-                                                                                </Box>
+                                                                                </>
                                                                       )}
                                                             </CardContent>
                                                   </Card>
                                         </Grid>
 
+                                        {/* Right Column: Ticket */}
                                         <Grid size={{ xs: 12, md: 4 }}>
-                                                  <Card sx={{ mb: 3, border: `2px solid ${alpha(theme.palette.primary.main, 0.2)}` }}>
-                                                            <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                                                                      <QrCode sx={{ fontSize: 100, color: 'text.disabled', mb: 2 }} />
-                                                                      <Typography variant="h3" fontWeight={800} color="primary.main">
+                                                  <Card sx={{
+                                                            height: '100%',
+                                                            borderRadius: 2,
+                                                            // boxShadow: theme.shadows[4],
+                                                            bgcolor: theme.palette.primary.main,
+                                                            color: 'white',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            overflow: 'hidden'
+                                                  }}>
+                                                            <Box sx={{ p: 2, textAlign: 'center', }}>
+                                                                      <Typography variant="overline" fontWeight={700} sx={{ letterSpacing: 2 }}>
+                                                                                {locale === 'ar' ? 'تذكرة الدخول' : 'ADMISSION PASS'}
+                                                                      </Typography>
+                                                            </Box>
+
+                                                            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4, bgcolor: '#f8fafc' }}>
+                                                                      {['confirmed', 'attended', 'paid'].includes(booking.status) ? (
+                                                                                <Box sx={{
+                                                                                          p: 2,
+                                                                                          // bgcolor: 'white',
+                                                                                          borderRadius: 4,
+                                                                                          mb: 3,
+                                                                                          display: 'inline-block',
+                                                                                          // boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                                                                                          // border: '1px solid',
+                                                                                          // borderColor: 'divider'
+                                                                                }}>
+                                                                                          <QRCodeSVG
+                                                                                                    value={`${window.location.origin}/bookings/${booking.id}`}
+                                                                                                    size={180}
+                                                                                                    level="H"
+                                                                                                    includeMargin={false}
+                                                                                          />
+                                                                                </Box>
+                                                                      ) : (
+                                                                                <Box sx={{
+                                                                                          p: 4,
+                                                                                          bgcolor: alpha(theme.palette.text.disabled, 0.1),
+                                                                                          borderRadius: 4,
+                                                                                          mb: 3,
+                                                                                          display: 'flex',
+                                                                                          flexDirection: 'column',
+                                                                                          alignItems: 'center'
+                                                                                }}>
+                                                                                          <QrCode sx={{ fontSize: 80, color: 'text.disabled', mb: 1 }} />
+                                                                                          <Typography variant="caption" color="text.secondary" textAlign="center">
+                                                                                                    {locale === 'ar' ? 'الرمز يظهر بعد التأكيد' : 'QR code shows after confirmation'}
+                                                                                          </Typography>
+                                                                                </Box>
+                                                                      )}
+
+                                                                      <Typography variant="h2" fontWeight={900} color="primary.main" sx={{ mb: 0.5 }}>
                                                                                 #{booking.seat_number}
                                                                       </Typography>
-                                                                      <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                                                                      <Typography variant="subtitle1" color="text.secondary" fontWeight={600}>
                                                                                 {t('booking.seatNumber')}
                                                                       </Typography>
-
-                                                                      <Divider sx={{ width: '100%', my: 2 }} />
-
-                                                                      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                                                                <Typography color="text.secondary">{locale === 'ar' ? 'قيمة الحجز' : 'Amount'}</Typography>
-                                                                                <Typography fontWeight={700}>{booking.amount} SAR</Typography>
-                                                                      </Box>
                                                             </CardContent>
+
+                                                            <Box sx={{ p: 3, bgcolor: 'white', borderTop: '2px dashed', borderColor: 'divider' }}>
+                                                                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                                <Typography variant="body1" color="text.secondary" fontWeight={600}>
+                                                                                          {locale === 'ar' ? 'المبلغ الإجمالي' : 'Total Amount'}
+                                                                                </Typography>
+                                                                                <Typography variant="h5" fontWeight={800} color="text.primary">
+                                                                                          {booking.amount} <Typography component="span" variant="body2" fontWeight={600} color="text.secondary">IQD</Typography>
+                                                                                </Typography>
+                                                                      </Box>
+                                                            </Box>
                                                   </Card>
                                         </Grid>
                               </Grid>

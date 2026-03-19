@@ -218,6 +218,11 @@ export interface Booking {
           // Joined
           workshop?: Workshop;
           user?: User;
+          trainer?: Trainer;
+          specialization?: Specialization;
+          confirmed_by_name?: string;
+          attendance_marked_by_name?: string;
+          payment_confirmed_by_name?: string;
 }
 
 export enum TrainerType {
@@ -249,6 +254,8 @@ export interface Trainer {
           user?: User;
           specialization?: Specialization;
           full_name?: string; // Appended by join for approved endpoint
+          name?: string;      // Appended by custom joins (e.g. booking details)
+          profile_image?: string; // Appended by custom joins (e.g. booking details)
 }
 
 export interface Notification {

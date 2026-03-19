@@ -243,7 +243,7 @@ export default function BookingListPage() {
                                                                                 </TableCell>
                                                                         )}
                                                                         <TableCell><Chip label={`#${booking.seat_number}`} size="small" variant="outlined" /></TableCell>
-                                                                        <TableCell><Typography variant="body2" fontWeight={600}>{booking.amount} SAR</Typography></TableCell>
+                                                                        <TableCell><Typography variant="body2" fontWeight={600}>{booking.amount} IQD</Typography></TableCell>
                                                                         <TableCell><StatusBadge status={booking.status} /></TableCell>
                                                                         <TableCell>
                                                                                 <Typography variant="caption" color="text.secondary">

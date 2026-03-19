@@ -30,14 +30,14 @@ export default function RevenueCards() {
           const cards = [
                     {
                               title: locale === 'ar' ? 'الإيرادات المتوقعة' : 'Expected Revenue',
-                              value: `${Number(revenue.expected_revenue || 0).toLocaleString()} SAR`,
+                              value: `${Number(revenue.expected_revenue || 0).toLocaleString()} IQD`,
                               icon: <TrendingUp />,
                               gradient: `linear-gradient(135deg, ${alpha(theme.palette.info.main, 0.15)}, ${alpha(theme.palette.info.light, 0.05)})`,
                               iconColor: theme.palette.info.main,
                     },
                     {
                               title: locale === 'ar' ? 'الإيرادات الفعلية' : 'Actual Revenue',
-                              value: `${Number(revenue.actual_revenue || 0).toLocaleString()} SAR`,
+                              value: `${Number(revenue.actual_revenue || 0).toLocaleString()} IQD`,
                               icon: <AccountBalance />,
                               gradient: `linear-gradient(135deg, ${alpha(theme.palette.success.main, 0.15)}, ${alpha(theme.palette.success.light, 0.05)})`,
                               iconColor: theme.palette.success.main,

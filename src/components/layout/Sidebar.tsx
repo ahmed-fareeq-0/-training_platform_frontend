@@ -67,7 +67,6 @@ export const getNavItems = (userRole: UserRole): NavItem[] => {
 
           if (userRole === UserRole.SUPER_ADMIN) {
                     items.push(
-                              { key: 'bookings', labelKey: 'nav.bookings', icon: <BookingsIcon />, path: '/bookings' },
                               { key: 'users', labelKey: 'nav.users', icon: <UsersIcon />, path: '/users' },
                               { key: 'managers', labelKey: 'nav.managers', icon: <ManagersIcon />, path: '/managers' },
                               { key: 'trainers', labelKey: 'nav.trainers', icon: <TrainersIcon />, path: '/trainers' },
@@ -78,7 +77,6 @@ export const getNavItems = (userRole: UserRole): NavItem[] => {
 
           if (userRole === UserRole.MANAGER) {
                     items.push(
-                              { key: 'bookings', labelKey: 'nav.bookings', icon: <BookingsIcon />, path: '/bookings' },
                               { key: 'trainers', labelKey: 'nav.trainers', icon: <TrainersIcon />, path: '/trainers' },
                               { key: 'enrollment-requests', labelKey: 'nav.enrollmentRequests', icon: <EnrollmentIcon />, path: '/enrollment-requests' },
                     );

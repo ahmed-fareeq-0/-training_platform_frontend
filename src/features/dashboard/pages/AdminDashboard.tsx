@@ -27,7 +27,7 @@ export default function AdminDashboard() {
                     );
           }
 
-          const d = (stats?.data as Record<string, any>) || {};
+          const d = (stats as Record<string, any>) || {};
           const users = d.users || {};
           const workshops = d.workshops || {};
           const bookings = d.bookings || {};
@@ -37,8 +37,8 @@ export default function AdminDashboard() {
                     { title: t('dashboard.totalUsers'), value: users.total_users || 0, icon: <People />, color: theme.palette.primary.main },
                     { title: t('dashboard.totalWorkshops'), value: workshops.total_workshops || 0, icon: <School />, color: theme.palette.secondary.main },
                     { title: t('dashboard.totalBookings'), value: bookings.total_bookings || 0, icon: <EventSeat />, color: theme.palette.info.main },
-                    { title: t('dashboard.expectedRevenue'), value: `${Number(revenue.expected_revenue || 0).toLocaleString()} SAR`, icon: <TrendingUp />, color: theme.palette.warning.main },
-                    { title: t('dashboard.actualRevenue'), value: `${Number(revenue.actual_revenue || 0).toLocaleString()} SAR`, icon: <AttachMoney />, color: theme.palette.success.main },
+                    { title: t('dashboard.expectedRevenue'), value: `${Number(revenue.expected_revenue || 0).toLocaleString()} IQD`, icon: <TrendingUp />, color: theme.palette.warning.main },
+                    { title: t('dashboard.actualRevenue'), value: `${Number(revenue.actual_revenue || 0).toLocaleString()} IQD`, icon: <AttachMoney />, color: theme.palette.success.main },
                     { title: t('dashboard.collectionRate'), value: `${Number(revenue.collection_rate || 0).toFixed(1)}%`, icon: <Category />, color: theme.palette.error.main },
           ];
 

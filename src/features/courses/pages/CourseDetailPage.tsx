@@ -801,7 +801,7 @@ const CourseDetailPage: React.FC = () => {
                                         </DialogTitle>
                                         <DialogContent>
                                                   <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-                                                            {locale === 'ar' ? 'سيتم حجز مقعدك بعد تأكيد الدفع من قبل الإدارة' : 'Your seat will be reserved after payment is confirmed.'}
+                                                            {locale === 'ar' ? 'سيتم تفعيل اشتراكك في الدورة بعد تأكيد الدفع من قبل الإدارة' : 'Your enrollment will be activated after payment is confirmed by the administration.'}
                                                   </Alert>
 
                                                   <Typography variant="body1" gutterBottom sx={{ mb: 1.5 }}>

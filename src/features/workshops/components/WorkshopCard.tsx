@@ -1,8 +1,7 @@
 import React from 'react';
-import { Card, CardMedia, CardContent, Typography, Box, Avatar, IconButton, useTheme, alpha, Divider } from '@mui/material';
-import { FavoriteBorder, Favorite, MoreVert, StarRounded, AccessTimeRounded, MenuBookRounded } from '@mui/icons-material';
+import { Card, CardMedia, CardContent, Typography, Box, Avatar, IconButton, useTheme, alpha, Chip } from '@mui/material';
+import { FavoriteBorder, Favorite, MoreVert, AccessTimeRounded, MenuBookRounded } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
 import { useAuthStore } from '../../../store/authStore';
 import { useUIStore } from '../../../store/uiStore';
 import { useToggleBookmark } from '../hooks/useWorkshops';
@@ -22,11 +21,7 @@ export default function WorkshopCard({ workshop, isAdminOrManager, onMenuClick }
           const toggleBookmark = useToggleBookmark();
 
           const getLocalizedField = (ar?: string, en?: string) => locale === 'ar' ? (ar || en || '') : (en || ar || '');
-
           const title = getLocalizedField(workshop.title_ar, workshop.title_en);
-          const description = getLocalizedField(workshop.description_ar, workshop.description_en);
-          const diffDays = dayjs(workshop.end_date).diff(dayjs(workshop.start_date), 'day');
-          const durationWeeks = Math.max(1, Math.ceil(diffDays / 7));
 
           const handleBookmark = (e: React.MouseEvent) => {
                     e.stopPropagation();
@@ -36,39 +31,41 @@ export default function WorkshopCard({ workshop, isAdminOrManager, onMenuClick }
 
           return (
                     <Card
+                              id={`workshop-card-${workshop.id}`}
+                              onClick={() => navigate(`/workshops/${workshop.id}`)}
                               sx={{
+                                        cursor: 'pointer',
                                         height: '100%',
                                         display: 'flex',
                                         flexDirection: 'column',
-                                        cursor: 'pointer',
-                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                                        borderRadius: '24px',
+                                        borderRadius: 1,
                                         overflow: 'hidden',
+                                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                                         border: `1px solid ${theme.palette.divider}`,
-                                        bgcolor: 'background.paper',
+                                        boxShadow: 'none',
                                         '&:hover': {
                                                   transform: 'translateY(-8px)',
-                                                  boxShadow: theme.palette.mode === 'dark'
-                                                            ? `0 20px 40px ${alpha(theme.palette.common.black, 0.4)}`
-                                                            : `0 20px 40px ${alpha(theme.palette.grey[400], 0.3)}`,
-                                                  '& .MuiCardMedia-root': {
-                                                            transform: 'scale(1.05)',
-                                                  },
+                                                  boxShadow: `0 16px 40px ${alpha(theme.palette.primary.main, 0.12)}`,
+                                                  borderColor: alpha(theme.palette.primary.main, 0.2),
+                                                  '& .cover-image': {
+                                                            transform: 'scale(1.04)'
+                                                  }
                                         },
                               }}
-                              onClick={() => navigate(`/workshops/${workshop.id}`)}
                     >
-                              <Box sx={{ overflow: 'hidden', position: 'relative' }}>
+                              {/* Cover Image Section */}
+                              <Box sx={{ position: 'relative', height: 260, overflow: 'hidden' }}>
                                         <CardMedia
-                                                  component="div"
+                                                  className="cover-image"
                                                   sx={{
-                                                            height: 220,
+                                                            height: '100%',
                                                             background: workshop.cover_image
-                                                                      ? `url(${getImageUrl(workshop.cover_image)}) center/cover`
-                                                                      : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.8)}, ${alpha(theme.palette.secondary.main, 0.8)})`,
-                                                            transition: 'transform 0.4s ease',
+                                                                      ? `url(${getImageUrl(workshop.cover_image)}) center/cover no-repeat`
+                                                                      : `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+                                                            transition: 'transform 0.5s ease',
                                                   }}
                                         />
+                                        
                                         {/* Actions overlay */}
                                         <Box sx={{ position: 'absolute', top: 16, left: 16, zIndex: 2, display: 'flex', gap: 1 }}>
                                                   {isAdminOrManager && onMenuClick && (
@@ -85,120 +82,135 @@ export default function WorkshopCard({ workshop, isAdminOrManager, onMenuClick }
                                                             </IconButton>
                                                   )}
                                         </Box>
-                                        <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 2 }}>
+                                        
+                                        {/* Floating Badge (Top Right) */}
+                                        <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 2, display: 'flex', gap: 1 }}>
                                                   <IconButton
                                                             onClick={handleBookmark}
                                                             sx={{
                                                                       bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.black, 0.6) : alpha(theme.palette.common.black, 0.8),
                                                                       backdropFilter: 'blur(4px)',
-                                                                      borderRadius: '10px',
+                                                                      borderRadius: '8px',
+                                                                      p: 0.5,
                                                                       '&:hover': { transform: 'scale(1.05)' },
                                                                       transition: 'all 0.2s',
                                                             }}
                                                             size="small"
                                                   >
                                                             {workshop.is_bookmarked ? (
-                                                                      <Favorite sx={{ color: theme.palette.common.white, fontSize: 20 }} />
+                                                                      <Favorite sx={{ color: theme.palette.common.white, fontSize: 16 }} />
                                                             ) : (
-                                                                      <FavoriteBorder sx={{ color: theme.palette.common.white, fontSize: 20 }} />
+                                                                      <FavoriteBorder sx={{ color: theme.palette.common.white, fontSize: 16 }} />
                                                             )}
                                                   </IconButton>
                                         </Box>
                               </Box>
 
-                              <CardContent sx={{ flex: 1, p: 3, pt: 2, display: 'flex', flexDirection: 'column' }}>
-                                        {/* Title */}
-                                        <Typography
-                                                  variant="h6"
-                                                  fontWeight={800}
-                                                  gutterBottom
-                                                  sx={{
-                                                            fontSize: '1.25rem',
-                                                            lineHeight: 1.4,
-                                                            mb: 1,
-                                                            display: '-webkit-box',
-                                                            WebkitLineClamp: 2,
-                                                            WebkitBoxOrient: 'vertical',
-                                                            overflow: 'hidden',
-                                                  }}
-                                        >
+                              {/* Workshop Content Area */}
+                              <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', p: 3 }}>
+
+                                        {/* Tags Row */}
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                                                  <Chip
+                                                            label={workshop.specialization_name_ar || workshop.specialization_name_en || (locale === 'ar' ? 'عام' : 'General')}
+                                                            size="small"
+                                                            sx={{
+                                                                      bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                                      color: 'primary.main',
+                                                                      fontWeight: 800,
+                                                                      fontSize: '0.7rem',
+                                                                      borderRadius: '16px'
+                                                            }}
+                                                  />
+                                                  <Chip
+                                                            icon={<AccessTimeRounded sx={{ fontSize: '14px !important' }} />}
+                                                            label={`${workshop.duration_hours || 1} ${locale === 'ar' ? 'ساعات' : 'h'}`}
+                                                            size="small"
+                                                            sx={{
+                                                                      bgcolor: alpha(theme.palette.text.secondary, 0.08),
+                                                                      color: 'text.secondary',
+                                                                      fontWeight: 700,
+                                                                      fontSize: '0.7rem',
+                                                                      borderRadius: '16px',
+                                                                      pl: 0.5
+                                                            }}
+                                                  />
+                                                  {workshop.session_start_time && (
+                                                            <Chip
+                                                                      icon={<AccessTimeRounded sx={{ fontSize: '14px !important' }} />}
+                                                                      label={workshop.session_end_time ? `${workshop.session_start_time.substring(0, 5)} - ${workshop.session_end_time.substring(0, 5)}` : workshop.session_start_time.substring(0, 5)}
+                                                                      size="small"
+                                                                      sx={{
+                                                                                bgcolor: alpha(theme.palette.text.secondary, 0.08),
+                                                                                color: 'text.secondary',
+                                                                                fontWeight: 700,
+                                                                                fontSize: '0.7rem',
+                                                                                borderRadius: '16px',
+                                                                                pl: 0.5
+                                                                      }}
+                                                            />
+                                                  )}
+                                        </Box>
+
+                                        {/* Workshop Title */}
+                                        <Typography variant="h6" fontWeight={800} sx={{
+                                                  mb: 2,
+                                                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                                                  lineHeight: 1.4, minHeight: '2.8em',
+                                        }}>
                                                   {title}
                                         </Typography>
 
-                                        {/* Description */}
-                                        <Typography
-                                                  variant="body2"
-                                                  color="text.secondary"
-                                                  sx={{
-                                                            mb: 3,
-                                                            display: '-webkit-box',
-                                                            WebkitLineClamp: 2,
-                                                            WebkitBoxOrient: 'vertical',
-                                                            overflow: 'hidden',
-                                                            lineHeight: 1.6,
-                                                  }}
-                                        >
-                                                  {description}
-                                        </Typography>
-
-                                        {/* Stats Row */}
-                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 'auto' }}>
-                                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                                                            <StarRounded sx={{ color: '#E53935', fontSize: 24 }} />
-                                                            <Typography variant="body2" fontWeight={700} color="text.primary">
-                                                                      {Number(workshop.average_rating || 0).toFixed(1)}
-                                                            </Typography>
-                                                  </Box>
-                                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                                                            <AccessTimeRounded sx={{ color: '#E53935', fontSize: 24 }} />
-                                                            <Typography variant="body2" fontWeight={700} color="text.primary">
-                                                                      {durationWeeks} {locale === 'ar' ? 'أسبوع' : 'week'}
-                                                            </Typography>
-                                                  </Box>
-                                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                                                            <MenuBookRounded sx={{ color: '#E53935', fontSize: 24 }} />
-                                                            <Typography variant="body2" fontWeight={700} color="text.primary">
-                                                                      {workshop.session_start_time ? `${workshop.session_start_time.substring(0, 5)} - ${workshop.session_end_time?.substring(0, 5)}` : (workshop.lessons_count || 0) + ' ' + (locale === 'ar' ? 'درس' : 'Lessons')}
+                                        {/* Author Pill */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                                  <Box sx={{
+                                                            display: 'flex', alignItems: 'center', gap: 1,
+                                                            border: `1px solid ${theme.palette.divider}`,
+                                                            borderRadius: '24px', p: 0.5, pr: 2,
+                                                            bgcolor: 'background.paper'
+                                                  }}>
+                                                            <Avatar
+                                                                      src={getImageUrl(workshop.trainer_avatar)}
+                                                                      sx={{
+                                                                                width: 24, height: 24,
+                                                                                bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                                                color: 'primary.main',
+                                                                                fontWeight: 700,
+                                                                                fontSize: '0.75rem'
+                                                                      }}
+                                                            >
+                                                                      {workshop.trainer_name ? workshop.trainer_name.charAt(0).toUpperCase() : 'M'}
+                                                            </Avatar>
+                                                            <Typography variant="caption" fontWeight={700} color="text.primary">
+                                                                      {workshop.trainer_name || (locale === 'ar' ? 'المدرب / Trainer' : 'Trainer')}
                                                             </Typography>
                                                   </Box>
                                         </Box>
 
+                                        {/* Card Footer Section */}
+                                        <Box sx={{
+                                                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                                  mt: 'auto', pt: 2, borderTop: `1px solid ${theme.palette.divider}`
+                                        }}>
+                                                  {/* Start Side (Price) */}
+                                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                            <Typography variant="h5" color="text.primary" fontWeight={800} sx={{ lineHeight: 1 }}>
+                                                                      {Number(workshop.price) > 0 ? `${Number(workshop.price).toLocaleString()} IQD` : (locale === 'ar' ? 'مجاني' : 'Free')}
+                                                            </Typography>
+                                                  </Box>
+
+                                                  {/* End Side (Book Icon) */}
+                                                  <Box sx={{
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            color: 'text.secondary',
+                                                            border: `1px solid ${theme.palette.divider}`,
+                                                            borderRadius: '8px',
+                                                            p: 0.75,
+                                                  }}>
+                                                            <MenuBookRounded fontSize="small" />
+                                                  </Box>
+                                        </Box>
                               </CardContent>
-
-                              <Divider sx={{ mx: 3 }} />
-
-                              {/* Footer Area with Trainer Info and Price */}
-                              <Box
-                                        sx={{
-                                                  px: 3,
-                                                  py: 2,
-                                                  display: 'flex',
-                                                  alignItems: 'center',
-                                                  justifyContent: 'space-between',
-                                        }}
-                              >
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                                                  <Avatar
-                                                            src={getImageUrl(workshop.trainer_avatar)}
-                                                            alt={workshop.trainer_name}
-                                                            sx={{ width: 32, height: 32 }}
-                                                  />
-                                                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                                            <Typography variant="subtitle2" fontWeight={700} color="text.primary" sx={{ lineHeight: 1.2 }}>
-                                                                      {workshop.trainer_name || (locale === 'ar' ? 'مدرب غير محدد' : 'Unknown Trainer')}
-                                                            </Typography>
-                                                            {workshop.trainer_experience_years > 0 && (
-                                                                      <Typography variant="caption" color="text.secondary" fontWeight={500} sx={{ mt: 0.5 }}>
-                                                                                {workshop.trainer_experience_years}+ {locale === 'ar' ? 'سنوات خبرة' : 'Year Exp'}
-                                                                      </Typography>
-                                                            )}
-                                                  </Box>
-                                        </Box>
-
-                                        <Typography variant="h6" fontWeight={800} color="text.primary">
-                                                  {workshop.price} IQD
-                                        </Typography>
-                              </Box>
                     </Card>
           );
 }

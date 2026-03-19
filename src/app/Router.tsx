@@ -11,7 +11,7 @@ import RegisterPage from '../features/auth/pages/RegisterPage';
 import AdminDashboard from '../features/dashboard/pages/AdminDashboard';
 import TraineeDashboard from '../features/dashboard/pages/TraineeDashboard';
 import TrainerDashboard from '../features/dashboard/pages/TrainerDashboard';
-import TraineeHomePage from '../features/dashboard/pages/TraineeHomePage';
+import HomePage from '../features/dashboard/pages/HomePage';
 
 // Feature pages
 import WorkshopListPage from '../features/workshops/pages/WorkshopListPage';
@@ -42,7 +42,7 @@ const InitialRoute = () => {
           if (isAuthenticated && user) {
                     return <Navigate to={getDashboardPath(user.role)} replace />;
           }
-          return <TraineeHomePage />;
+          return <HomePage />;
 };
 
 const router = createBrowserRouter([
@@ -58,7 +58,7 @@ const router = createBrowserRouter([
                               { index: true, element: <InitialRoute /> },
 
                               // Dashboards
-                              { path: 'home', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER]}><TraineeHomePage /></RoleGuard></AuthGuard> },
+                              { path: 'home', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER]}><HomePage /></RoleGuard></AuthGuard> },
                               { path: 'dashboard', element: <AuthGuard><TraineeDashboard /></AuthGuard> },
                               { path: 'dashboard/admin', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN]}><AdminDashboard /></RoleGuard></AuthGuard> },
                               { path: 'dashboard/manager', element: <AuthGuard><RoleGuard roles={[UserRole.MANAGER]}><AdminDashboard /></RoleGuard></AuthGuard> },

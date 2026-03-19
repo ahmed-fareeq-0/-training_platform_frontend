@@ -1,6 +1,7 @@
 import { Box, Toolbar, useTheme, useMediaQuery } from '@mui/material';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
+import Footer from './Footer';
 import Sidebar, { DRAWER_WIDTH } from './Sidebar';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
@@ -29,10 +30,15 @@ export default function AppLayout() {
           py: 4,
           px: isHeaderNavRole ? { xs: 2, sm: 3, md: 6, lg: 10, xl: 14 } : { xs: 2, sm: 3 },
           bgcolor: 'background.default',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Toolbar />
-        <Outlet />
+        <Box sx={{ flexGrow: 1 }}>
+          <Outlet />
+        </Box>
+        {isHeaderNavRole && <Footer />}
       </Box>
     </Box>
   );

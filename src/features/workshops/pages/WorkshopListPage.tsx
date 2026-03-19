@@ -203,7 +203,7 @@ export default function WorkshopListPage() {
                                                             )}
                                                   </Grid>
                                         ) : (
-                                                  <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', backgroundColor: 'background.paper', overflow: 'auto' }}>
+                                                  <TableContainer component={Paper} sx={{ borderRadius: 2, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', backgroundColor: 'background.paper', overflow: 'auto' }}>
                                                             <Table sx={{ minWidth: 800 }}>
                                                                       <TableHead sx={{ bgcolor: alpha(theme.palette.primary.main, 0.05) }}>
                                                                                 <TableRow>

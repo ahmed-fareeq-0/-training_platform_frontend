@@ -158,19 +158,16 @@ const WorkshopBuilderPage: React.FC = () => {
           const handleSaveWorkshop = async () => {
                     if (!id) return;
                     const payload: Record<string, unknown> = { ...workshopForm };
-                    // Combine date + time into timestamps
-                    if (payload.start_date && payload.session_start_time) {
-                              payload.start_date = `${payload.start_date}T${payload.session_start_time}:00`;
-                    }
-                    if (payload.end_date && payload.session_end_time) {
-                              payload.end_date = `${payload.end_date}T${payload.session_end_time}:00`;
-                    }
-                    delete payload.session_start_time;
-                    delete payload.session_end_time;
+                    // Keep start_date and end_date as plain YYYY-MM-DD strings
+                    // Send session_start_time and session_end_time as separate fields (backend expects them separately)
                     // Cast numeric fields
                     payload.price = Number(payload.price) || 0;
                     payload.total_seats = Number(payload.total_seats) || 30;
                     payload.duration_hours = Number(payload.duration_hours) || 1;
+                    // Remove empty cover_image to avoid validation error (backend .min(1) rejects '')
+                    if (!payload.cover_image) {
+                              delete payload.cover_image;
+                    }
 
                     try {
                               await updateWorkshop.mutateAsync({ id, data: payload });
@@ -690,7 +687,7 @@ const WorkshopBuilderPage: React.FC = () => {
                                                                                           <SummaryRow icon={<CalendarMonthIcon />} label={isRTL ? 'تاريخ النهاية' : 'End Date'} value={workshop.end_date ? dayjs(workshop.end_date).format('YYYY-MM-DD HH:mm') : '—'} />
                                                                                           <SummaryRow icon={<AccessTimeIcon />} label={isRTL ? 'المدة' : 'Duration'} value={`${workshop.duration_hours || 0} ${isRTL ? 'ساعة' : 'hrs'}`} />
                                                                                           <SummaryRow icon={<PeopleIcon />} label={isRTL ? 'المقاعد' : 'Seats'} value={`${workshop.total_seats}`} />
-                                                                                          <SummaryRow icon={<AttachMoneyIcon />} label={isRTL ? 'السعر' : 'Price'} value={Number(workshop.price) === 0 ? (isRTL ? 'مجاني' : 'Free') : `${workshop.price} SAR`} />
+                                                                                          <SummaryRow icon={<AttachMoneyIcon />} label={isRTL ? 'السعر' : 'Price'} value={Number(workshop.price) === 0 ? (isRTL ? 'مجاني' : 'Free') : `${workshop.price} IQD`} />
                                                                                           <SummaryRow icon={<LocationOnIcon />} label={isRTL ? 'الموقع' : 'Location'} value={getField(workshop.location_ar, workshop.location_en)} />
                                                                                           <SummaryRow icon={<FormatListBulletedIcon />} label={isRTL ? 'التخصص' : 'Specialization'} value={getSpecName()} />
                                                                                 </Stack>

@@ -31,7 +31,7 @@ export default function StatCards({ dashboard }: StatCardsProps) {
                     },
                     {
                               label: locale === 'ar' ? 'الإيرادات' : 'Revenue',
-                              value: `${Number(dashboard.revenue?.actual || 0).toLocaleString()} SAR`,
+                              value: `${Number(dashboard.revenue?.actual || 0).toLocaleString()} IQD`,
                               icon: <TrendingUp />,
                               color: theme.palette.success.main
                     },
