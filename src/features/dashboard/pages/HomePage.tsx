@@ -32,7 +32,7 @@ const HomePage: React.FC = () => {
     };
 
     return (
-        <Box sx={{ bgcolor: 'background.default', pb: 10 }}>
+        <Box sx={{ pb: 10 }}>
             {/* Hero Section */}
             <Box sx={{ minHeight: 'calc(100vh - 84px)', display: 'flex', alignItems: 'center', pt: { xs: 8, md: 0 }, pb: { xs: 8, md: 0 } }}>
                 <Container maxWidth="xl">
@@ -43,7 +43,7 @@ const HomePage: React.FC = () => {
                         justifyContent="space-between"
                     >
                         {/* Text Content */}
-                        <Box 
+                        <Box
                             component={motion.div}
                             initial={{ opacity: 0, x: isAr ? 50 : -50 }}
                             whileInView={{ opacity: 1, x: 0 }}
@@ -96,7 +96,7 @@ const HomePage: React.FC = () => {
                         </Box>
 
                         {/* Right Hero Image */}
-                        <Box 
+                        <Box
                             component={motion.div}
                             initial={{ opacity: 0, scale: 0.9 }}
                             whileInView={{ opacity: 1, scale: 1 }}
@@ -160,7 +160,7 @@ const HomePage: React.FC = () => {
             </Box>
 
             {/* Academic Experts Carousel (New Phase 3) */}
-            <Box sx={{ py: 10, bgcolor: 'background.default', overflow: 'hidden' }}>
+            <Box sx={{ py: 10, overflow: 'hidden' }}>
                 <Container maxWidth="xl" sx={{ position: 'relative' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', mb: 6 }}>
                         <Box>
@@ -290,7 +290,7 @@ const HomePage: React.FC = () => {
             {/* Target Audience Section (Redesigned) */}
             <Box sx={{ py: 12 }}>
                 <Box>
-                    <Typography 
+                    <Typography
                         component={motion.h3}
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -300,7 +300,7 @@ const HomePage: React.FC = () => {
                     >
                         {isAr ? 'من نخدم؟' : 'Who We Serve'}
                     </Typography>
-                    <Typography 
+                    <Typography
                         component={motion.p}
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -339,13 +339,13 @@ const HomePage: React.FC = () => {
                                 shadowColor: theme.palette.success.main
                             }
                         ].map((audience, index) => (
-                            <Box 
+                            <Box
                                 component={motion.div}
                                 initial={{ opacity: 0, y: 50 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true, margin: '-50px' }}
                                 transition={{ duration: 0.6, delay: index * 0.15, ease: "easeOut" }}
-                                key={index} 
+                                key={index}
                                 sx={{ flex: 1, display: 'flex' }}
                             >
                                 <Card sx={{

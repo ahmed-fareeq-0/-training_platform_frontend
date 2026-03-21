@@ -4,11 +4,13 @@ import {
           Box, Typography, Container, Button, Stack, CircularProgress, Avatar,
           Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItemButton,
           ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, IconButton,
-          FormControl, InputLabel, Select, MenuItem, Alert, Grid, Card, CardContent, Divider, useTheme, alpha, Tabs, Tab, TextField
+          FormControl, InputLabel, Select, MenuItem, Alert, Grid, Card, CardContent, Divider, useTheme, alpha, Tabs, Tab, TextField,
+          LinearProgress,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArticleIcon from '@mui/icons-material/Article';
@@ -27,7 +29,8 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium';
 import { Plyr } from 'plyr-react';
 import 'plyr-react/plyr.css';
 
-import { useCourseById, useEnrollInCourse } from '../hooks/useCourses';
+import { useCourseById, useEnrollInCourse, useMyEnrollments } from '../hooks/useCourses';
+import { useCourseProgress } from '../hooks/useCourses';
 import { useAuthStore } from '../../../store/authStore';
 import { CourseSection, CourseLesson, UserRole, RequirementType } from '../../../types';
 import { useUIStore } from '../../../store/uiStore';
@@ -81,6 +84,22 @@ const CourseDetailPage: React.FC = () => {
 
           const { data: course, isLoading } = useCourseById(id!);
           const enrollMutation = useEnrollInCourse();
+          const { data: myEnrollments } = useMyEnrollments();
+
+          // Check if user is actively enrolled in this course
+          const myEnrollment = useMemo(() => {
+                    if (!myEnrollments || !id) return null;
+                    return (myEnrollments as any[])?.find((e: any) => e.course_id === id && (e.status === 'active' || e.status === 'completed'));
+          }, [myEnrollments, id]);
+
+          const { data: progressData } = useCourseProgress(myEnrollment ? id! : '');
+
+          // Auto-redirect enrolled users directly to the learning page
+          useEffect(() => {
+                    if (myEnrollment && id) {
+                              navigate(`/courses/${id}/learn`, { replace: true });
+                    }
+          }, [myEnrollment, id, navigate]);
 
           const [enrollOpen, setEnrollOpen] = useState(false);
           const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('cash');
@@ -120,6 +139,11 @@ const CourseDetailPage: React.FC = () => {
           }, [firstPreviewVideo, currentVideoUrl, locale]);
 
           const handleLessonClick = (lesson: CourseLesson) => {
+                    // If user is enrolled, navigate to the course player
+                    if (myEnrollment) {
+                              navigate(`/courses/${id}/learn`);
+                              return;
+                    }
                     if (!lesson.is_preview) return;
                     if (lesson.lesson_type === 'video' && lesson.media_url) {
                               // Swap the hero video
@@ -444,13 +468,15 @@ const CourseDetailPage: React.FC = () => {
                                                                                                                                                       sx={{
                                                                                                                                                                 px: 3,
                                                                                                                                                                 py: 2,
-                                                                                                                                                                cursor: lesson.is_preview ? 'pointer' : 'default',
-                                                                                                                                                                opacity: lesson.is_preview ? 1 : 0.85,
+                                                                                                                                                                cursor: (myEnrollment || lesson.is_preview) ? 'pointer' : 'default',
+                                                                                                                                                                opacity: (myEnrollment || lesson.is_preview) ? 1 : 0.85,
                                                                                                                                                       }}
                                                                                                                                             >
                                                                                                                                                       {/* Left side info (in RTL) - Duration & Lock */}
                                                                                                                                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mr: 2 }}>
-                                                                                                                                                                {lesson.is_preview ? (
+                                                                                                                                                                {myEnrollment ? (
+                                                                                                                                                                          <PlayCircleOutlineIcon sx={{ color: 'primary.main', fontSize: 20 }} />
+                                                                                                                                                                ) : lesson.is_preview ? (
                                                                                                                                                                           <VisibilityIcon sx={{ color: 'info.main', fontSize: 20 }} />
                                                                                                                                                                 ) : (
                                                                                                                                                                           <LockIcon sx={{ color: 'text.disabled', fontSize: 18 }} />
@@ -476,7 +502,7 @@ const CourseDetailPage: React.FC = () => {
                                                                                                                                                                 <Typography variant="body2" color="text.secondary" fontWeight={600}>
                                                                                                                                                                           {idx + 1}.{lIdx + 1}
                                                                                                                                                                 </Typography>
-                                                                                                                                                                <Box sx={{ color: lesson.is_preview ? 'primary.main' : 'text.disabled', display: 'flex' }}>
+                                                                                                                                                                <Box sx={{ color: (myEnrollment || lesson.is_preview) ? 'primary.main' : 'text.disabled', display: 'flex' }}>
                                                                                                                                                                           {lessonIcons[lesson.lesson_type] || lessonIcons.text}
                                                                                                                                                                 </Box>
                                                                                                                                                       </Box>
@@ -771,6 +797,91 @@ const CourseDetailPage: React.FC = () => {
                                                                       </Card>
                                                             )}
 
+                                                            {/* Sidebar Card: Progress (for enrolled users) */}
+                                                            {myEnrollment && (
+                                                                      <Card sx={{
+                                                                                borderRadius: '24px',
+                                                                                border: `1px solid ${theme.palette.divider}`,
+                                                                                boxShadow: 'none',
+                                                                                overflow: 'hidden',
+                                                                                background: `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.04)} 0%, ${alpha(theme.palette.success.main, 0.04)} 100%)`,
+                                                                      }}>
+                                                                                <CardContent sx={{ p: { xs: 3, md: 4 }, textAlign: 'center' }}>
+                                                                                          <Typography variant="h6" fontWeight={800} gutterBottom>
+                                                                                                    {locale === 'ar' ? 'تقدمك في الدورة' : 'Your Progress'}
+                                                                                          </Typography>
+
+                                                                                          {progressData ? (
+                                                                                                    <>
+                                                                                                              <Box sx={{ position: 'relative', display: 'inline-flex', my: 2 }}>
+                                                                                                                        <CircularProgress
+                                                                                                                                  variant="determinate"
+                                                                                                                                  value={progressData.percentage}
+                                                                                                                                  size={100}
+                                                                                                                                  thickness={5}
+                                                                                                                                  sx={{
+                                                                                                                                            color: progressData.percentage === 100 ? 'success.main' : 'primary.main',
+                                                                                                                                            '& .MuiCircularProgress-circle': { strokeLinecap: 'round' },
+                                                                                                                                  }}
+                                                                                                                        />
+                                                                                                                        <Box sx={{ position: 'absolute', top: 0, left: 0, bottom: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                                                                                                  <Typography variant="h5" fontWeight={800} color={progressData.percentage === 100 ? 'success.main' : 'primary.main'}>
+                                                                                                                                            {progressData.percentage}%
+                                                                                                                                  </Typography>
+                                                                                                                        </Box>
+                                                                                                              </Box>
+                                                                                                              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                                                                                                                        {progressData.completed} / {progressData.total} {locale === 'ar' ? 'درس مكتمل' : 'lessons completed'}
+                                                                                                              </Typography>
+                                                                                                              {progressData.percentage === 100 && (
+                                                                                                                        <Typography variant="body2" color="success.main" fontWeight={700} sx={{ mb: 2 }}>
+                                                                                                                                  {locale === 'ar' ? '🎉 أكملت الدورة بنجاح!' : '🎉 Course completed!'}
+                                                                                                                        </Typography>
+                                                                                                              )}
+                                                                                                    </>
+                                                                                          ) : (
+                                                                                                    <Typography variant="body2" color="text.secondary" sx={{ my: 2 }}>
+                                                                                                              {locale === 'ar' ? 'لم تبدأ بعد' : 'Not started yet'}
+                                                                                                    </Typography>
+                                                                                          )}
+
+                                                                                          <LinearProgress
+                                                                                                    variant="determinate"
+                                                                                                    value={progressData?.percentage || 0}
+                                                                                                    sx={{
+                                                                                                              height: 8, borderRadius: 4, mb: 3,
+                                                                                                              bgcolor: alpha(theme.palette.primary.main, 0.1),
+                                                                                                              '& .MuiLinearProgress-bar': {
+                                                                                                                        borderRadius: 4,
+                                                                                                                        background: (progressData?.percentage || 0) === 100
+                                                                                                                                  ? `linear-gradient(90deg, ${theme.palette.success.main}, ${theme.palette.success.light})`
+                                                                                                                                  : `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.light})`,
+                                                                                                              },
+                                                                                                    }}
+                                                                                          />
+
+                                                                                          <Button
+                                                                                                    variant="contained"
+                                                                                                    fullWidth
+                                                                                                    size="large"
+                                                                                                    onClick={() => navigate(`/courses/${id}/learn`)}
+                                                                                                    startIcon={<PlayCircleOutlineIcon />}
+                                                                                                    sx={{
+                                                                                                              py: 1.8, borderRadius: '16px', fontWeight: 800, fontSize: '1.05rem',
+                                                                                                              textTransform: 'none',
+                                                                                                              background: (progressData?.percentage || 0) > 0
+                                                                                                                        ? `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`
+                                                                                                                        : undefined,
+                                                                                                    }}
+                                                                                          >
+                                                                                                    {(progressData?.percentage || 0) > 0
+                                                                                                              ? (locale === 'ar' ? 'متابعة التعلم' : 'Continue Learning')
+                                                                                                              : (locale === 'ar' ? 'بدء التعلم' : 'Start Learning')}
+                                                                                          </Button>
+                                                                                </CardContent>
+                                                                      </Card>
+                                                            )}
+
                                                             {/* Sidebar Card 3: Course Summary Details */}
                                                             <Card sx={{ borderRadius: '24px', border: `1px solid ${theme.palette.divider}`, boxShadow: 'none' }}>
                                                                       <CardContent sx={{ p: 3 }}>
@@ -787,6 +898,43 @@ const CourseDetailPage: React.FC = () => {
                                                                                           <SidebarInfoRow icon={<PlayLessonRoundedIcon fontSize="small" />} label={locale === 'ar' ? 'عدد الدروس' : 'Lessons'} value={totalLessons.toString()} />
                                                                                           <SidebarInfoRow icon={<AccessTimeIcon fontSize="small" />} label={locale === 'ar' ? 'المدة الكلية' : 'Total Duration'} value={formatHoursMinutes(course.total_duration_minutes || 0)} />
                                                                                 </Stack>
+                                                                      </CardContent>
+                                                            </Card>
+
+                                                            {/* Sidebar Card 4: Support */}
+                                                            <Card sx={{ borderRadius: '24px', border: `1px solid ${theme.palette.divider}`, boxShadow: 'none', }}>
+                                                                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
+                                                                                <Typography variant="h6" fontWeight={800} gutterBottom sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                                                                                          {locale === 'ar' ? 'تحتاج مساعدة؟' : 'Need Help?'}
+                                                                                </Typography>
+                                                                                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                                                                                          {locale === 'ar'
+                                                                                                    ? 'تواصل مع فريق الدعم الفني عبر الواتساب لحل أي مشكلة تواجهك.'
+                                                                                                    : 'Contact our support team via WhatsApp for any assistance.'}
+                                                                                </Typography>
+                                                                                <Button
+                                                                                          variant="contained"
+                                                                                          fullWidth
+                                                                                          startIcon={<WhatsAppIcon />}
+                                                                                          onClick={() => {
+                                                                                                    const supportNumber = '+9647715503646'; // Replace with actual number
+                                                                                                    const messageText = locale === 'ar'
+                                                                                                              ? `مرحباً، أحتاج إلى مساعدة بخصوص الدورة.\n\nاسم الدورة: ${title}\nاسم الحساب: ${user?.full_name || ''}\nالبريد الإلكتروني: ${user?.email || ''}`
+                                                                                                              : `Hello, I need assistance with a course.\n\nCourse Name: ${title}\nAccount Name: ${user?.full_name || ''}\nEmail: ${user?.email || ''}`;
+                                                                                                    window.open(`https://wa.me/${supportNumber}?text=${encodeURIComponent(messageText)}`, '_blank');
+                                                                                          }}
+                                                                                          sx={{
+                                                                                                    bgcolor: '#25D366',
+                                                                                                    color: '#fff',
+                                                                                                    borderRadius: '16px',
+                                                                                                    py: 1.5,
+                                                                                                    fontWeight: 700,
+                                                                                                    textTransform: 'none',
+                                                                                                    '&:hover': { bgcolor: '#1DA851' }
+                                                                                          }}
+                                                                                >
+                                                                                          {locale === 'ar' ? 'تواصل عبر الواتساب' : 'Contact Support'}
+                                                                                </Button>
                                                                       </CardContent>
                                                             </Card>
                                                   </Stack>

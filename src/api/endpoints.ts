@@ -132,5 +132,8 @@ export const ENDPOINTS = {
                     PENDING_ENROLLMENTS: '/courses/enrollments/pending',
                     CONFIRM_ENROLLMENT: (enrollmentId: string) => `/courses/enrollments/${enrollmentId}/confirm`,
                     UPLOAD_MEDIA: '/courses/upload/media',
+                    PROGRESS: (courseId: string) => `/courses/${courseId}/progress`,
+                    LESSON_COMPLETE: (courseId: string, lessonId: string) => `/courses/${courseId}/progress/${lessonId}/complete`,
+                    LESSON_POSITION: (courseId: string, lessonId: string) => `/courses/${courseId}/progress/${lessonId}/position`,
           },
 } as const;

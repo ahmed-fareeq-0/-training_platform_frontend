@@ -114,6 +114,27 @@ const courseService = {
                     );
                     return res.data.data;
           },
+
+          // --- Progress Tracking ---
+          getProgress: async (courseId: string) => {
+                    const res = await api.get<ApiResponse<{
+                              completed: number; total: number; percentage: number;
+                              lessons: Array<{ lesson_id: string; is_completed: boolean; last_position_seconds: number; completed_at: string | null }>;
+                    }>>(ENDPOINTS.COURSES.PROGRESS(courseId));
+                    return res.data.data;
+          },
+
+          markLessonComplete: async (courseId: string, lessonId: string) => {
+                    const res = await api.post<ApiResponse<any>>(ENDPOINTS.COURSES.LESSON_COMPLETE(courseId, lessonId));
+                    return res.data.data;
+          },
+
+          updateLessonPosition: async (courseId: string, lessonId: string, positionSeconds: number) => {
+                    const res = await api.patch<ApiResponse<any>>(ENDPOINTS.COURSES.LESSON_POSITION(courseId, lessonId), {
+                              position_seconds: positionSeconds,
+                    });
+                    return res.data.data;
+          },
 };
 
 export default courseService;

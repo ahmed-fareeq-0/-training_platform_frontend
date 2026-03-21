@@ -296,143 +296,143 @@ export default function Header() {
                                                   {user && (
                                                             <>
                                                                       {/* Notifications */}
-                                                  <Tooltip title={t('nav.notifications')}>
-                                                            <IconButton
-                                                                      onClick={(e) => setNotifAnchorEl(e.currentTarget)}
-                                                                      sx={{
-                                                                                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F4F6F8',
-                                                                                color: 'text.primary',
-                                                                                p: 1.2,
-                                                                                '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.05) }
-                                                                      }}
-                                                            >
-                                                                      <Badge badgeContent={unread?.count || 0} color="error">
-                                                                                <NotifIcon fontSize="small" />
-                                                                      </Badge>
-                                                            </IconButton>
-                                                  </Tooltip>
-
-                                                  <Popover
-                                                            open={Boolean(notifAnchorEl)}
-                                                            anchorEl={notifAnchorEl}
-                                                            onClose={() => setNotifAnchorEl(null)}
-                                                            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                                            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                                                            disableScrollLock
-                                                            slotProps={{
-                                                                      paper: {
-                                                                                sx: { mt: 1.5, width: 300, height: 400, borderRadius: 1, boxShadow: theme.shadows[8] }
-                                                                      }
-                                                            }}
-                                                  >
-                                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5, borderBottom: `1px solid ${theme.palette.divider}` }}>
-                                                                      <Typography variant="subtitle1" fontWeight={700}>
-                                                                                {t('nav.notifications')}
-                                                                      </Typography>
-                                                                      {(unread?.count ?? 0) > 0 && (
-                                                                                <Button
-                                                                                          size="small"
-                                                                                          startIcon={<DoneAll fontSize="small" />}
-                                                                                          onClick={() => { markAllRead.mutate(); }}
-                                                                                          disabled={markAllRead.isPending}
-                                                                                          sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 600 }}
-                                                                                >
-                                                                                          {locale === 'ar' ? 'تحديد الكل كمقروء' : 'Mark all read'}
-                                                                                </Button>
-                                                                      )}
-                                                            </Box>
-                                                            <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
-                                                                      <NotificationList notifications={notifications} isLoading={notifLoading} />
-                                                            </Box>
-                                                  </Popover>
-
-                                                  {/* User menu */}
-                                                  <Box sx={{ ml: 1 }}>
-                                                            <IconButton
-                                                                      onClick={(e) => setAnchorEl(e.currentTarget)}
-                                                                      sx={{
-                                                                                p: 0.5,
-                                                                                border: `2px solid ${theme.palette.divider}`,
-                                                                      }}
-                                                            >
-                                                                      <Avatar
-                                                                                src={getImageUrl(user?.profile_image)}
-                                                                                sx={{
-                                                                                          width: 38, height: 38,
-                                                                                          bgcolor: theme.palette.primary.main,
-                                                                                          color: '#ffffff',
-                                                                                          fontSize: '0.9rem',
-                                                                                          fontWeight: 700,
-                                                                                }}
-                                                                      >
-                                                                                {user?.full_name?.charAt(0)?.toUpperCase()}
-                                                                      </Avatar>
-                                                            </IconButton>
-                                                            <Menu
-                                                                      anchorEl={anchorEl}
-                                                                      open={Boolean(anchorEl)}
-                                                                      onClose={() => setAnchorEl(null)}
-                                                                      transformOrigin={{ horizontal: locale === 'ar' ? 'left' : 'right', vertical: 'top' }}
-                                                                      anchorOrigin={{ horizontal: locale === 'ar' ? 'left' : 'right', vertical: 'bottom' }}
-                                                                      disableScrollLock={true}
-                                                                      slotProps={{
-                                                                                paper: {
-                                                                                          sx: { width: 300, mt: 1, borderRadius: 1, zIndex: 9999 },
-                                                                                },
-                                                                      }}
-                                                            >
-                                                                      <Box sx={{ px: 2, pt: 3, pb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
-                                                                                <Avatar
-                                                                                          src={getImageUrl(user?.profile_image)}
+                                                                      <Tooltip title={t('nav.notifications')}>
+                                                                                <IconButton
+                                                                                          onClick={(e) => setNotifAnchorEl(e.currentTarget)}
                                                                                           sx={{
-                                                                                                    width: 72, height: 72,
-                                                                                                    bgcolor: theme.palette.primary.main,
-                                                                                                    color: '#ffffff',
-                                                                                                    fontSize: '1.75rem',
-                                                                                                    fontWeight: 700,
-                                                                                                    border: `3px solid ${theme.palette.primary.main}`,
-                                                                                                    boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.1)}`
+                                                                                                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#F4F6F8',
+                                                                                                    color: 'text.primary',
+                                                                                                    p: 1.2,
+                                                                                                    '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.05) }
                                                                                           }}
                                                                                 >
-                                                                                          {user?.full_name?.charAt(0)?.toUpperCase()}
-                                                                                </Avatar>
-                                                                                <Box sx={{ textAlign: 'center' }}>
-                                                                                          <Typography variant="h6" fontWeight={800} color="primary.main">
-                                                                                                    {user?.full_name}
+                                                                                          <Badge badgeContent={unread?.count || 0} color="error">
+                                                                                                    <NotifIcon fontSize="small" />
+                                                                                          </Badge>
+                                                                                </IconButton>
+                                                                      </Tooltip>
+
+                                                                      <Popover
+                                                                                open={Boolean(notifAnchorEl)}
+                                                                                anchorEl={notifAnchorEl}
+                                                                                onClose={() => setNotifAnchorEl(null)}
+                                                                                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                                                                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                                                                disableScrollLock
+                                                                                slotProps={{
+                                                                                          paper: {
+                                                                                                    sx: { mt: 1.5, width: 300, height: 400, borderRadius: 1, boxShadow: theme.shadows[8] }
+                                                                                          }
+                                                                                }}
+                                                                      >
+                                                                                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5, borderBottom: `1px solid ${theme.palette.divider}` }}>
+                                                                                          <Typography variant="subtitle1" fontWeight={700}>
+                                                                                                    {t('nav.notifications')}
                                                                                           </Typography>
-                                                                                          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                                                                                    {user?.email}
-                                                                                          </Typography>
+                                                                                          {(unread?.count ?? 0) > 0 && (
+                                                                                                    <Button
+                                                                                                              size="small"
+                                                                                                              startIcon={<DoneAll fontSize="small" />}
+                                                                                                              onClick={() => { markAllRead.mutate(); }}
+                                                                                                              disabled={markAllRead.isPending}
+                                                                                                              sx={{ textTransform: 'none', fontSize: '0.75rem', fontWeight: 600 }}
+                                                                                                    >
+                                                                                                              {locale === 'ar' ? 'تحديد الكل كمقروء' : 'Mark all read'}
+                                                                                                    </Button>
+                                                                                          )}
                                                                                 </Box>
+                                                                                <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+                                                                                          <NotificationList notifications={notifications} isLoading={notifLoading} />
+                                                                                </Box>
+                                                                      </Popover>
+
+                                                                      {/* User menu */}
+                                                                      <Box sx={{ ml: 1 }}>
+                                                                                <IconButton
+                                                                                          onClick={(e) => setAnchorEl(e.currentTarget)}
+                                                                                          sx={{
+                                                                                                    p: 0.5,
+                                                                                                    border: `2px solid ${theme.palette.divider}`,
+                                                                                          }}
+                                                                                >
+                                                                                          <Avatar
+                                                                                                    src={getImageUrl(user?.profile_image)}
+                                                                                                    sx={{
+                                                                                                              width: 38, height: 38,
+                                                                                                              bgcolor: theme.palette.primary.main,
+                                                                                                              color: '#ffffff',
+                                                                                                              fontSize: '0.9rem',
+                                                                                                              fontWeight: 700,
+                                                                                                    }}
+                                                                                          >
+                                                                                                    {user?.full_name?.charAt(0)?.toUpperCase()}
+                                                                                          </Avatar>
+                                                                                </IconButton>
+                                                                                <Menu
+                                                                                          anchorEl={anchorEl}
+                                                                                          open={Boolean(anchorEl)}
+                                                                                          onClose={() => setAnchorEl(null)}
+                                                                                          transformOrigin={{ horizontal: locale === 'ar' ? 'left' : 'right', vertical: 'top' }}
+                                                                                          anchorOrigin={{ horizontal: locale === 'ar' ? 'left' : 'right', vertical: 'bottom' }}
+                                                                                          disableScrollLock={true}
+                                                                                          slotProps={{
+                                                                                                    paper: {
+                                                                                                              sx: { width: 300, mt: 1, borderRadius: 1, zIndex: 9999 },
+                                                                                                    },
+                                                                                          }}
+                                                                                >
+                                                                                          <Box sx={{ px: 2, pt: 3, pb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+                                                                                                    <Avatar
+                                                                                                              src={getImageUrl(user?.profile_image)}
+                                                                                                              sx={{
+                                                                                                                        width: 72, height: 72,
+                                                                                                                        bgcolor: theme.palette.primary.main,
+                                                                                                                        color: '#ffffff',
+                                                                                                                        fontSize: '1.75rem',
+                                                                                                                        fontWeight: 700,
+                                                                                                                        border: `3px solid ${theme.palette.primary.main}`,
+                                                                                                                        boxShadow: `0 0 0 4px ${alpha(theme.palette.primary.main, 0.1)}`
+                                                                                                              }}
+                                                                                                    >
+                                                                                                              {user?.full_name?.charAt(0)?.toUpperCase()}
+                                                                                                    </Avatar>
+                                                                                                    <Box sx={{ textAlign: 'center' }}>
+                                                                                                              <Typography variant="h6" fontWeight={800} color="primary.main">
+                                                                                                                        {user?.full_name}
+                                                                                                              </Typography>
+                                                                                                              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                                                                                                                        {user?.email}
+                                                                                                              </Typography>
+                                                                                                    </Box>
+                                                                                          </Box>
+                                                                                          <Divider sx={{ my: 0.5 }} />
+                                                                                          <MenuItem onClick={() => { navigate('/profile'); setAnchorEl(null); }} sx={{ borderRadius: 1, mx: 1, py: 1.2 }}>
+                                                                                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                                                                                              <Person sx={{ fontSize: '1.3rem', color: 'text.secondary' }} />
+                                                                                                    </ListItemIcon>
+                                                                                                    <ListItemText primary={t('nav.profile')} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
+                                                                                          </MenuItem>
+                                                                                          <MenuItem onClick={() => { handleToggleLocale(); setAnchorEl(null); }} sx={{ borderRadius: 1, mx: 1, py: 1.2 }}>
+                                                                                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                                                                                              <Language sx={{ fontSize: '1.3rem', color: 'text.secondary' }} />
+                                                                                                    </ListItemIcon>
+                                                                                                    <ListItemText primary={locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
+                                                                                          </MenuItem>
+                                                                                          <MenuItem onClick={() => { toggleTheme(); setAnchorEl(null); }} sx={{ borderRadius: 1, mx: 1, py: 1.2 }}>
+                                                                                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                                                                                              {themeMode === 'light' ? <DarkMode sx={{ fontSize: '1.3rem', color: 'text.secondary' }} /> : <LightMode sx={{ fontSize: '1.3rem', color: 'text.secondary' }} />}
+                                                                                                    </ListItemIcon>
+                                                                                                    <ListItemText primary={themeMode === 'light' ? (locale === 'ar' ? 'الوضع الداكن' : 'Dark Mode') : (locale === 'ar' ? 'الوضع الفاتح' : 'Light Mode')} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
+                                                                                          </MenuItem>
+                                                                                          <Divider sx={{ my: 0.5 }} />
+                                                                                          <MenuItem onClick={handleLogout} sx={{ color: 'error.main', borderRadius: 1, mx: 1, py: 1.2 }}>
+                                                                                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                                                                                              <Logout sx={{ fontSize: '1.3rem', color: 'error.main' }} />
+                                                                                                    </ListItemIcon>
+                                                                                                    <ListItemText primary={t('auth.logout')} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
+                                                                                          </MenuItem>
+                                                                                </Menu>
                                                                       </Box>
-                                                                      <Divider sx={{ my: 0.5 }} />
-                                                                      <MenuItem onClick={() => { navigate('/profile'); setAnchorEl(null); }} sx={{ borderRadius: 1, mx: 1, py: 1.2 }}>
-                                                                                <ListItemIcon sx={{ minWidth: 36 }}>
-                                                                                          <Person sx={{ fontSize: '1.3rem', color: 'text.secondary' }} />
-                                                                                </ListItemIcon>
-                                                                                <ListItemText primary={t('nav.profile')} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
-                                                                      </MenuItem>
-                                                                      <MenuItem onClick={() => { handleToggleLocale(); setAnchorEl(null); }} sx={{ borderRadius: 1, mx: 1, py: 1.2 }}>
-                                                                                <ListItemIcon sx={{ minWidth: 36 }}>
-                                                                                          <Language sx={{ fontSize: '1.3rem', color: 'text.secondary' }} />
-                                                                                </ListItemIcon>
-                                                                                <ListItemText primary={locale === 'ar' ? 'Switch to English' : 'التبديل للعربية'} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
-                                                                      </MenuItem>
-                                                                      <MenuItem onClick={() => { toggleTheme(); setAnchorEl(null); }} sx={{ borderRadius: 1, mx: 1, py: 1.2 }}>
-                                                                                <ListItemIcon sx={{ minWidth: 36 }}>
-                                                                                          {themeMode === 'light' ? <DarkMode sx={{ fontSize: '1.3rem', color: 'text.secondary' }} /> : <LightMode sx={{ fontSize: '1.3rem', color: 'text.secondary' }} />}
-                                                                                </ListItemIcon>
-                                                                                <ListItemText primary={themeMode === 'light' ? (locale === 'ar' ? 'الوضع الداكن' : 'Dark Mode') : (locale === 'ar' ? 'الوضع الفاتح' : 'Light Mode')} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
-                                                                      </MenuItem>
-                                                                      <Divider sx={{ my: 0.5 }} />
-                                                                      <MenuItem onClick={handleLogout} sx={{ color: 'error.main', borderRadius: 1, mx: 1, py: 1.2 }}>
-                                                                                <ListItemIcon sx={{ minWidth: 36 }}>
-                                                                                          <Logout sx={{ fontSize: '1.3rem', color: 'error.main' }} />
-                                                                                </ListItemIcon>
-                                                                                <ListItemText primary={t('auth.logout')} primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }} />
-                                                                      </MenuItem>
-                                                            </Menu>
-                                                  </Box>
                                                             </>
                                                   )}
                                         </Box>

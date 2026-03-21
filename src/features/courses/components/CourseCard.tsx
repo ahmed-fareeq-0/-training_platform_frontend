@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Course } from '../../../types';
+import { useMyEnrollments } from '../hooks/useCourses';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useUIStore } from '../../../store/uiStore';
@@ -28,6 +29,12 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         const navigate = useNavigate();
         const theme = useTheme();
         const { locale } = useUIStore();
+        const { data: myEnrollments } = useMyEnrollments();
+
+        const isEnrolled = React.useMemo(() => {
+                if (!myEnrollments || !course.id) return false;
+                return (myEnrollments as any[]).some(e => e.course_id === course.id && (e.status === 'active' || e.status === 'completed'));
+        }, [myEnrollments, course.id]);
 
         const formatDuration = (minutes: number) => {
                 const hours = Math.floor(minutes / 60);
@@ -40,7 +47,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         return (
                 <Card
                         id={`course-card-${course.id}`}
-                        onClick={() => navigate(`/courses/${course.id}`)}
+                        onClick={() => navigate(isEnrolled ? `/courses/${course.id}/learn` : `/courses/${course.id}`)}
                         sx={{
                                 cursor: 'pointer',
                                 height: '100%',

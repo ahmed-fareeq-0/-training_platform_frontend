@@ -196,3 +196,32 @@ export const useUploadCourseMedia = () => {
                               courseService.uploadMedia(file, folder),
           });
 };
+
+// --- Progress Tracking ---
+
+export const useCourseProgress = (courseId: string) => {
+          return useQuery({
+                    queryKey: ['courses', 'progress', courseId],
+                    queryFn: () => courseService.getProgress(courseId),
+                    enabled: !!courseId,
+          });
+};
+
+export const useMarkLessonComplete = () => {
+          const qc = useQueryClient();
+          return useMutation({
+                    mutationFn: ({ courseId, lessonId }: { courseId: string; lessonId: string }) =>
+                              courseService.markLessonComplete(courseId, lessonId),
+                    onSuccess: (_data, variables) => {
+                              qc.invalidateQueries({ queryKey: ['courses', 'progress', variables.courseId] });
+                              qc.invalidateQueries({ queryKey: courseKeys.myEnrollments });
+                    },
+          });
+};
+
+export const useUpdateLessonPosition = () => {
+          return useMutation({
+                    mutationFn: ({ courseId, lessonId, positionSeconds }: { courseId: string; lessonId: string; positionSeconds: number }) =>
+                              courseService.updateLessonPosition(courseId, lessonId, positionSeconds),
+          });
+};
