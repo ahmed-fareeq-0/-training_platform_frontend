@@ -225,3 +225,26 @@ export const useUpdateLessonPosition = () => {
                               courseService.updateLessonPosition(courseId, lessonId, positionSeconds),
           });
 };
+
+// --- Course Reviews ---
+
+export const useSubmitCourseReview = () => {
+          const qc = useQueryClient();
+          return useMutation({
+                    mutationFn: ({ courseId, data }: { courseId: string; data: { rating: number; comment?: string } }) =>
+                              courseService.submitReview(courseId, data),
+                    onSuccess: (_data, variables) => {
+                              qc.invalidateQueries({ queryKey: courseKeys.detail(variables.courseId) });
+                              qc.invalidateQueries({ queryKey: ['courses', 'my-review', variables.courseId] });
+                    },
+          });
+};
+
+export const useMyCourseReview = (courseId: string) => {
+          return useQuery({
+                    queryKey: ['courses', 'my-review', courseId],
+                    queryFn: () => courseService.getMyReview(courseId),
+                    enabled: !!courseId,
+                    retry: false, // 404 is expected if no review exists
+          });
+};

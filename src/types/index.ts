@@ -415,6 +415,8 @@ export interface Course {
           specialization_name_en?: string;
           specialization_icon?: string;
           enrolled_count?: number;
+          average_rating?: number;
+          review_count?: number;
           sections?: CourseSection[];
 }
 

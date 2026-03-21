@@ -135,6 +135,17 @@ const courseService = {
                     });
                     return res.data.data;
           },
+
+          // --- Reviews ---
+          submitReview: async (courseId: string, data: { rating: number; comment?: string }) => {
+                    const res = await api.post(ENDPOINTS.COURSES.REVIEW(courseId), data);
+                    return res.data.data;
+          },
+          
+          getMyReview: async (courseId: string) => {
+                    const res = await api.get(ENDPOINTS.COURSES.MY_REVIEW(courseId));
+                    return res.data.data;
+          },
 };
 
 export default courseService;

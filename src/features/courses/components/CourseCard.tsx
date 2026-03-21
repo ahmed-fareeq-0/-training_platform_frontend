@@ -7,6 +7,7 @@ import { Course } from '../../../types';
 import { useMyEnrollments } from '../hooks/useCourses';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
+import StarIcon from '@mui/icons-material/Star';
 import { useUIStore } from '../../../store/uiStore';
 
 interface CourseCardProps {
@@ -165,6 +166,16 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
                                                 </Typography>
                                         </Box>
 
+                                        {/* Rating Pill */}
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                <StarIcon sx={{ color: '#FAAF00', fontSize: 18 }} />
+                                                <Typography variant="body2" fontWeight={800} color="text.primary">
+                                                        {Number(course.average_rating || 0).toFixed(1)}
+                                                </Typography>
+                                                <Typography variant="caption" color="text.secondary" fontWeight={600}>
+                                                        ({course.review_count || 0})
+                                                </Typography>
+                                        </Box>
                                 </Box>
 
                                 {/* Card Footer Section */}

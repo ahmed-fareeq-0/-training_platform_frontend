@@ -28,8 +28,9 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Plyr from 'plyr';
 import 'plyr-react/plyr.css';
 import { useCourseContent, useCourseById } from '../hooks/useCourses';
-import { useCourseProgress, useMarkLessonComplete, useUpdateLessonPosition } from '../hooks/useCourses';
+import { useCourseProgress, useMarkLessonComplete, useUpdateLessonPosition, useMyCourseReview } from '../hooks/useCourses';
 import { CourseSection, CourseLesson } from '../../../types';
+import { CourseRatingDialog } from '../components/CourseRatingDialog';
 import { useTheme as useMuiTheme } from '@mui/material';
 import { useUIStore } from '../../../store/uiStore';
 
@@ -145,11 +146,21 @@ const CoursePlayerPage: React.FC = () => {
           const markComplete = useMarkLessonComplete();
           const updatePosition = useUpdateLessonPosition();
 
+          const { data: myReview, isLoading: isMyReviewLoading } = useMyCourseReview(courseId);
+
           const [activeLesson, setActiveLesson] = useState<CourseLesson | null>(null);
           const [activeTab, setActiveTab] = useState(0);
           const [isTransitioning, setIsTransitioning] = useState(false);
+          const [showRatingDialog, setShowRatingDialog] = useState(false);
           const saveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
           const pendingCompletionsRef = useRef<Set<string>>(new Set());
+
+          // Trigger mandatory rating dialog when course is completed
+          useEffect(() => {
+                    if ((progressData?.percentage || 0) >= 100 && !isMyReviewLoading && !myReview) {
+                              setShowRatingDialog(true);
+                    }
+          }, [progressData?.percentage, isMyReviewLoading, myReview]);
 
           // Build a flat lesson list for navigation
           const allLessons = useMemo(() => {
@@ -377,8 +388,9 @@ const CoursePlayerPage: React.FC = () => {
           );
 
           return (
-                    <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
-                              <Grid container spacing={4} sx={{ alignItems: 'flex-start' }}>
+                    <>
+                              <Container maxWidth="xl" sx={{ py: { xs: 2, md: 4 }, px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
+                                        <Grid container spacing={4} sx={{ alignItems: 'flex-start' }}>
                                         {/* ── MAIN CONTENT ── */}
                                         <Grid size={{ xs: 12, md: 8 }}>
                                                   {/* Video Player */}
@@ -704,6 +716,14 @@ const CoursePlayerPage: React.FC = () => {
                                         </Grid>
                               </Grid>
                     </Container>
+
+                    {/* Mandatory Rating Dialog triggered on course completion */}
+                    <CourseRatingDialog
+                              open={showRatingDialog}
+                              courseId={courseId}
+                              onSuccess={() => setShowRatingDialog(false)}
+                    />
+          </>
           );
 };
 

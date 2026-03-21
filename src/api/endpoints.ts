@@ -135,5 +135,7 @@ export const ENDPOINTS = {
                     PROGRESS: (courseId: string) => `/courses/${courseId}/progress`,
                     LESSON_COMPLETE: (courseId: string, lessonId: string) => `/courses/${courseId}/progress/${lessonId}/complete`,
                     LESSON_POSITION: (courseId: string, lessonId: string) => `/courses/${courseId}/progress/${lessonId}/position`,
+                    REVIEW: (courseId: string) => `/courses/${courseId}/review`,
+                    MY_REVIEW: (courseId: string) => `/courses/${courseId}/review/me`,
           },
 } as const;
