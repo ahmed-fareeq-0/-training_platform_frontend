@@ -77,10 +77,10 @@ export const getDashboardPath = (role: UserRole): string => {
                     case UserRole.MANAGER:
                               return '/dashboard/manager';
                     case UserRole.TRAINER:
-                              return '/dashboard/trainer';
+                              return '/home';
                     case UserRole.TRAINEE:
-                              return '/dashboard/trainee';
+                              return '/home';
                     default:
-                              return '/dashboard';
+                              return '/home';
           }
 };

@@ -6,23 +6,23 @@ import {
           Avatar, useTheme, alpha, Dialog, DialogTitle, DialogContent, DialogActions, Grid
 } from '@mui/material';
 import {
-          ArrowBack, Email, Phone, CheckCircle, Cancel,
-          EventAvailable, MoneyOff, Person, QrCode,
+          Email, Phone, CheckCircle,
+          MoneyOff, QrCode,
           CalendarMonth, AccessTime, LocationOn, School
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import { QRCodeSVG } from 'qrcode.react';
 
 import {
-          useBookingDetail, useConfirmBooking, useCancelBooking,
-          useMarkAttendance, useMarkPayment
+          useBookingDetail, useApproveBooking,
+          useMarkPayment
 } from '../hooks/useBookings';
 import StatusBadge from '../../../components/ui/StatusBadge';
 import { useUIStore } from '../../../store/uiStore';
 import { useAuthStore } from '../../../store/authStore';
 import { UserRole, BookingStatus } from '../../../types';
 
-type ActionType = 'confirm' | 'cancel' | 'attended' | 'no_show' | 'payment';
+type ActionType = 'approve' | 'payment';
 
 export default function BookingDetailPage() {
           const { id } = useParams<{ id: string }>();
@@ -36,9 +36,7 @@ export default function BookingDetailPage() {
 
           const { data: booking, isLoading } = useBookingDetail(id!);
 
-          const confirmBooking = useConfirmBooking();
-          const cancelBooking = useCancelBooking();
-          const markAttendance = useMarkAttendance();
+          const approveBooking = useApproveBooking();
           const markPayment = useMarkPayment();
 
           const [actionDialog, setActionDialog] = useState<{ open: boolean; type: ActionType | null }>({ open: false, type: null });
@@ -65,10 +63,7 @@ export default function BookingDetailPage() {
                     if (!id || !actionDialog.type) return;
                     try {
                               switch (actionDialog.type) {
-                                        case 'confirm': await confirmBooking.mutateAsync(id); break;
-                                        case 'cancel': await cancelBooking.mutateAsync(id); break;
-                                        case 'attended': await markAttendance.mutateAsync({ id, status: 'attended' }); break;
-                                        case 'no_show': await markAttendance.mutateAsync({ id, status: 'no_show' }); break;
+                                        case 'approve': await approveBooking.mutateAsync(id); break;
                                         case 'payment': await markPayment.mutateAsync(id); break;
                               }
                     } catch { /* handled */ }
@@ -77,41 +72,22 @@ export default function BookingDetailPage() {
 
           const getField = (ar?: string, en?: string) => locale === 'ar' ? (ar || en || '') : (en || ar || '');
 
-          const isActionPending = confirmBooking.isPending || cancelBooking.isPending || markAttendance.isPending || markPayment.isPending;
+          const isActionPending = approveBooking.isPending || markPayment.isPending;
 
           const renderActions = () => {
                     const actions = [];
 
-                    if (booking.status === BookingStatus.PENDING) {
+                    if (booking.status === BookingStatus.PENDING_APPROVAL) {
                               if (isAdmin) {
                                         actions.push(
-                                                  <Button key="confirm" variant="contained" color="info" startIcon={<CheckCircle />} onClick={() => setActionDialog({ open: true, type: 'confirm' })}>
-                                                            {locale === 'ar' ? 'تأكيد الحجز' : 'Confirm'}
+                                                  <Button key="approve" variant="contained" color="info" startIcon={<CheckCircle />} onClick={() => setActionDialog({ open: true, type: 'approve' })}>
+                                                            {locale === 'ar' ? 'قبول الحجز' : 'Approve'}
                                                   </Button>
                                         );
                               }
-                              actions.push(
-                                        <Button key="cancel" variant="outlined" color="error" startIcon={<Cancel />} onClick={() => setActionDialog({ open: true, type: 'cancel' })}>
-                                                  {locale === 'ar' ? 'إلغاء الحجز' : 'Cancel Booking'}
-                                        </Button>
-                              );
                     }
 
-                    if (booking.status === BookingStatus.CONFIRMED && canManageBooking) {
-                              actions.push(
-                                        <Button key="attended" variant="contained" color="success" startIcon={<EventAvailable />} onClick={() => setActionDialog({ open: true, type: 'attended' })}>
-                                                  {locale === 'ar' ? 'تسجيل حضور' : 'Mark Attended'}
-                                        </Button>,
-                                        <Button key="noshow" variant="contained" color="error" startIcon={<Person />} onClick={() => setActionDialog({ open: true, type: 'no_show' })}>
-                                                  {locale === 'ar' ? 'لم يحضر' : 'Mark No-Show'}
-                                        </Button>,
-                                        <Button key="cancel2" variant="outlined" color="inherit" startIcon={<Cancel />} onClick={() => setActionDialog({ open: true, type: 'cancel' })}>
-                                                  {locale === 'ar' ? 'إلغاء' : 'Cancel'}
-                                        </Button>
-                              );
-                    }
-
-                    if (booking.status === BookingStatus.ATTENDED && isAdmin) {
+                    if (booking.status === BookingStatus.APPROVED && isAdmin) {
                               actions.push(
                                         <Button key="payment" variant="contained" color="success" startIcon={<MoneyOff />} onClick={() => setActionDialog({ open: true, type: 'payment' })}>
                                                   {locale === 'ar' ? 'تأكيد الدفع' : 'Confirm Payment'}
@@ -279,7 +255,7 @@ export default function BookingDetailPage() {
                                                             </Box>
 
                                                             <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 4, bgcolor: '#f8fafc' }}>
-                                                                      {['confirmed', 'attended', 'paid'].includes(booking.status) ? (
+                                                                      {['approved', 'paid'].includes(booking.status) ? (
                                                                                 <Box sx={{
                                                                                           p: 2,
                                                                                           // bgcolor: 'white',

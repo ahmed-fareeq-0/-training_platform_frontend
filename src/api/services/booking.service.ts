@@ -45,31 +45,14 @@ const bookingService = {
                     return res.data.data;
           },
 
-          confirm: async (id: string) => {
-                    const res = await api.post<ApiResponse<Booking>>(ENDPOINTS.BOOKINGS.CONFIRM(id));
-                    return res.data.data;
-          },
-
-          cancel: async (id: string) => {
-                    const res = await api.post<ApiResponse<Booking>>(ENDPOINTS.BOOKINGS.CANCEL(id));
+          approve: async (id: string) => {
+                    const res = await api.post<ApiResponse<Booking>>(ENDPOINTS.BOOKINGS.APPROVE(id));
                     return res.data.data;
           },
 
           updateStatus: async (id: string, status: string) => {
                     const res = await api.patch<ApiResponse<Booking>>(ENDPOINTS.BOOKINGS.STATUS(id), { status });
                     return res.data.data;
-          },
-
-          markAttendance: async (id: string, status: 'attended' | 'no_show') => {
-                    const res = await api.post<ApiResponse<Booking>>(ENDPOINTS.BOOKINGS.ATTENDANCE(id), {
-                              attended: status === 'attended'
-                    });
-                    return res.data.data;
-          },
-
-          markBulkAttendance: async (data: { workshop_id: string; attendees: Array<{ booking_id: string; status: string }> }) => {
-                    const res = await api.post<ApiResponse<null>>(ENDPOINTS.BOOKINGS.BULK_ATTENDANCE, data);
-                    return res.data;
           },
 
           markPayment: async (id: string) => {

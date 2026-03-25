@@ -65,7 +65,7 @@ export default function Footer() {
     return (
         <Box sx={{ mt: 'auto', pt: 8, pb: 4 }}>
             {/* Inner Card representing the large dark area in the design */}
-            <Paper 
+            <Paper
                 elevation={0}
                 sx={{
                     borderRadius: '32px',
@@ -77,13 +77,13 @@ export default function Footer() {
             >
                 {/* Top Row: Logo & Socials */}
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', mb: 6, gap: 4 }}>
-                    <Box 
+                    <Box
                         sx={{ display: 'flex', alignItems: 'center', gap: 2, cursor: 'pointer' }}
                         onClick={() => navigate('/')}
                     >
                         <Box
                             component="img"
-                            src="/logo.png"
+                            src="/logoLightMode.png"
                             alt={t('common.appName')}
                             sx={{ height: 40 }}
                         />
@@ -91,9 +91,9 @@ export default function Footer() {
 
                     <Box sx={{ display: 'flex', gap: 2 }}>
                         {[XIcon, FacebookIcon, InstagramIcon].map((Icon, idx) => (
-                            <IconButton 
+                            <IconButton
                                 key={idx}
-                                sx={{ 
+                                sx={{
                                     bgcolor: alpha(theme.palette.text.primary, 0.05),
                                     color: 'text.secondary',
                                     '&:hover': {
@@ -122,7 +122,7 @@ export default function Footer() {
                             </Typography>
                             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                                 {col.links.map((link, lIdx) => (
-                                    <Typography 
+                                    <Typography
                                         key={lIdx}
                                         component="a"
                                         href={link.path}

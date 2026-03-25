@@ -5,11 +5,11 @@ import {
         Box, Typography, Card, CardContent, Table, TableBody, TableCell,
         TableContainer, TableHead, TableRow, Button, IconButton, Tooltip,
         Pagination, Chip, useTheme, alpha, Skeleton, Dialog,
-        DialogTitle, DialogContent, DialogActions, MenuItem, TextField, Checkbox,
+        DialogTitle, DialogContent, DialogActions, MenuItem, TextField,
 } from '@mui/material';
 import {
-        CheckCircle, Cancel, Visibility, EventAvailable,
-        MoneyOff, Person, FactCheck, EventBusy
+        CheckCircle, Visibility,
+        MoneyOff, EventBusy
 } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import StatusBadge from '../../../components/ui/StatusBadge';
@@ -17,16 +17,15 @@ import RevenueCards from '../components/RevenueCards';
 import EmptyState from '../../../components/common/EmptyState';
 import {
         useMyBookings, useAllBookings,
-        useConfirmBooking, useCancelBooking,
-        useMarkAttendance, useMarkPayment,
-        useBulkAttendance,
+        useApproveBooking,
+        useMarkPayment,
 } from '../hooks/useBookings';
 import { useAuthStore } from '../../../store/authStore';
 import { useUIStore } from '../../../store/uiStore';
 import { UserRole, BookingStatus } from '../../../types';
 import type { Booking } from '../../../types';
 
-type ActionType = 'confirm' | 'cancel' | 'attended' | 'no_show' | 'payment';
+type ActionType = 'approve' | 'payment';
 
 export default function BookingListPage() {
         const theme = useTheme();
@@ -36,8 +35,7 @@ export default function BookingListPage() {
         const { locale } = useUIStore();
         const [page, setPage] = useState(1);
         const [statusFilter, setStatusFilter] = useState<string>('');
-        const [selectedBookings, setSelectedBookings] = useState<string[]>([]);
-        const [bulkActionDialog, setBulkActionDialog] = useState<{ open: boolean, type: 'attended' | 'no_show' }>({ open: false, type: 'attended' });
+
         const isAdmin = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER;
 
         const filters = { page, limit: 10, ...(statusFilter && { status: statusFilter }) };
@@ -48,81 +46,38 @@ export default function BookingListPage() {
         const pagination = activeQuery.data?.pagination;
         const isLoading = activeQuery.isLoading;
 
-        const confirmBooking = useConfirmBooking();
-        const cancelBooking = useCancelBooking();
-        const markAttendance = useMarkAttendance();
+        const approveBooking = useApproveBooking();
         const markPayment = useMarkPayment();
-        const bulkAttendance = useBulkAttendance();
 
         const [actionDialog, setActionDialog] = useState<{
                 open: boolean; type: ActionType; booking: Booking | null;
-        }>({ open: false, type: 'confirm', booking: null });
+        }>({ open: false, type: 'approve', booking: null });
 
         const handleAction = async () => {
                 const b = actionDialog.booking;
                 if (!b) return;
                 try {
                         switch (actionDialog.type) {
-                                case 'confirm': await confirmBooking.mutateAsync(b.id); break;
-                                case 'cancel': await cancelBooking.mutateAsync(b.id); break;
-                                case 'attended': await markAttendance.mutateAsync({ id: b.id, status: 'attended' }); break;
-                                case 'no_show': await markAttendance.mutateAsync({ id: b.id, status: 'no_show' }); break;
+                                case 'approve': await approveBooking.mutateAsync(b.id); break;
                                 case 'payment': await markPayment.mutateAsync(b.id); break;
                         }
                 } catch { /* handled */ }
-                setActionDialog({ open: false, type: 'confirm', booking: null });
+                setActionDialog({ open: false, type: 'approve', booking: null });
         };
 
-        const handleBulkAction = async () => {
-                if (selectedBookings.length === 0) return;
 
-                // Group selections by workshop to match the bulk API design if needed
-                // Currently API bulk matches workshop_id, let's just assume we're acting on the selected List
-                // The bulk schema might need workshop_id. Let's send the first booking's workshop_id and just the attendees.
-                const firstBooking = bookings.find(b => b.id === selectedBookings[0]);
-                if (!firstBooking) return;
-
-                try {
-                        await bulkAttendance.mutateAsync({
-                                workshop_id: firstBooking.workshop_id,
-                                attendees: selectedBookings.map(id => ({ booking_id: id, status: bulkActionDialog.type }))
-                        });
-                        setSelectedBookings([]);
-                } catch { }
-                setBulkActionDialog({ ...bulkActionDialog, open: false });
-        };
-
-        const toggleSelect = (id: string) => {
-                setSelectedBookings(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
-        };
-
-        const toggleSelectAll = () => {
-                if (selectedBookings.length === bookings.filter(b => b.status === BookingStatus.CONFIRMED).length) {
-                        setSelectedBookings([]);
-                } else {
-                        setSelectedBookings(bookings.filter(b => b.status === BookingStatus.CONFIRMED).map(b => b.id));
-                }
-        };
 
         const getField = (ar?: string, en?: string) => locale === 'ar' ? (ar || en || '') : (en || ar || '');
 
         const getActions = (booking: Booking) => {
                 const actions: Array<{ label: string; icon: React.ReactNode; type: ActionType; color: string }> = [];
                 if (!isAdmin) return actions;
-                if (booking.status === BookingStatus.PENDING) {
+                if (booking.status === BookingStatus.PENDING_APPROVAL) {
                         actions.push(
-                                { label: locale === 'ar' ? 'تأكيد' : 'Confirm', icon: <CheckCircle />, type: 'confirm', color: 'info' },
-                                { label: locale === 'ar' ? 'إلغاء' : 'Cancel', icon: <Cancel />, type: 'cancel', color: 'error' },
+                                { label: locale === 'ar' ? 'موافقة' : 'Approve', icon: <CheckCircle />, type: 'approve', color: 'info' }
                         );
                 }
-                if (booking.status === BookingStatus.CONFIRMED) {
-                        actions.push(
-                                { label: locale === 'ar' ? 'حضر' : 'Attended', icon: <EventAvailable />, type: 'attended', color: 'success' },
-                                { label: locale === 'ar' ? 'لم يحضر' : 'No-Show', icon: <Person />, type: 'no_show', color: 'error' },
-                                { label: locale === 'ar' ? 'إلغاء' : 'Cancel', icon: <Cancel />, type: 'cancel', color: 'default' },
-                        );
-                }
-                if (booking.status === BookingStatus.ATTENDED) {
+                if (booking.status === BookingStatus.APPROVED) {
                         actions.push(
                                 { label: locale === 'ar' ? 'تأكيد الدفع' : 'Confirm Payment', icon: <MoneyOff />, type: 'payment', color: 'success' },
                         );
@@ -146,25 +101,7 @@ export default function BookingListPage() {
                                                         </Typography>
                                                 </Box>
 
-                                                {isAdmin && selectedBookings.length > 0 && (
-                                                        <Box sx={{ display: 'flex', gap: 1 }}>
-                                                                <Button
-                                                                        variant="contained"
-                                                                        color="success"
-                                                                        startIcon={<FactCheck />}
-                                                                        onClick={() => setBulkActionDialog({ open: true, type: 'attended' })}
-                                                                >
-                                                                        {locale === 'ar' ? `حضر (${selectedBookings.length})` : `Attended (${selectedBookings.length})`}
-                                                                </Button>
-                                                                <Button
-                                                                        variant="outlined"
-                                                                        color="error"
-                                                                        onClick={() => setBulkActionDialog({ open: true, type: 'no_show' })}
-                                                                >
-                                                                        {locale === 'ar' ? `لم يحضر (${selectedBookings.length})` : `No Show (${selectedBookings.length})`}
-                                                                </Button>
-                                                        </Box>
-                                                )}
+
                                         </Box>
 
                                         {/* Unified Filter Section */}
@@ -192,16 +129,7 @@ export default function BookingListPage() {
                                         <Table>
                                                 <TableHead>
                                                         <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.04) }}>
-                                                                {isAdmin && (
-                                                                        <TableCell padding="checkbox">
-                                                                                <Checkbox
-                                                                                        indeterminate={selectedBookings.length > 0 && selectedBookings.length < bookings.filter(b => b.status === BookingStatus.CONFIRMED).length}
-                                                                                        checked={bookings.filter(b => b.status === BookingStatus.CONFIRMED).length > 0 && selectedBookings.length === bookings.filter(b => b.status === BookingStatus.CONFIRMED).length}
-                                                                                        onChange={toggleSelectAll}
-                                                                                        disabled={bookings.filter(b => b.status === BookingStatus.CONFIRMED).length === 0}
-                                                                                />
-                                                                        </TableCell>
-                                                                )}
+
                                                                 <TableCell sx={{ fontWeight: 600 }}>#</TableCell>
                                                                 <TableCell sx={{ fontWeight: 600 }}>{locale === 'ar' ? 'الورشة' : 'Workshop'}</TableCell>
                                                                 {isAdmin && <TableCell sx={{ fontWeight: 600 }}>{locale === 'ar' ? 'المتدرب' : 'Trainee'}</TableCell>}
@@ -222,15 +150,7 @@ export default function BookingListPage() {
                                                         ))}
                                                         {!isLoading && bookings.map((booking, idx) => (
                                                                 <TableRow key={booking.id} hover>
-                                                                        {isAdmin && (
-                                                                                <TableCell padding="checkbox">
-                                                                                        <Checkbox
-                                                                                                checked={selectedBookings.includes(booking.id)}
-                                                                                                onChange={() => toggleSelect(booking.id)}
-                                                                                                disabled={booking.status !== BookingStatus.CONFIRMED}
-                                                                                        />
-                                                                                </TableCell>
-                                                                        )}
+
                                                                         <TableCell>{(page - 1) * 10 + idx + 1}</TableCell>
                                                                         <TableCell>
                                                                                 <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: 200 }}>
@@ -308,23 +228,7 @@ export default function BookingListPage() {
                                 </DialogActions>
                         </Dialog>
 
-                        {/* Bulk Action Confirmation Dialog */}
-                        <Dialog open={bulkActionDialog.open} onClose={() => setBulkActionDialog({ ...bulkActionDialog, open: false })} maxWidth="xs" fullWidth>
-                                <DialogTitle>{locale === 'ar' ? 'تأكيد الإجراء الجماعي' : 'Confirm Bulk Action'}</DialogTitle>
-                                <DialogContent>
-                                        <Typography>
-                                                {locale === 'ar'
-                                                        ? `هل أنت متأكد من تغيير حالة الحضور لـ ${selectedBookings.length} حجوزات إلى ${bulkActionDialog.type === 'attended' ? 'حضر' : 'لم يحضر'}؟`
-                                                        : `Are you sure you want to change the attendance status of ${selectedBookings.length} bookings to ${bulkActionDialog.type === 'attended' ? 'Attended' : 'No Show'}?`}
-                                        </Typography>
-                                </DialogContent>
-                                <DialogActions>
-                                        <Button onClick={() => setBulkActionDialog({ ...bulkActionDialog, open: false })}>{t('common.cancel')}</Button>
-                                        <Button variant="contained" color={bulkActionDialog.type === 'attended' ? 'success' : 'error'} onClick={handleBulkAction} disabled={bulkAttendance.isPending}>
-                                                {t('common.confirm')}
-                                        </Button>
-                                </DialogActions>
-                        </Dialog>
+
                 </Box>
         );
 }

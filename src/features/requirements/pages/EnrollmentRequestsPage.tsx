@@ -18,13 +18,13 @@ import { usePendingEnrollmentRequests, useReviewSubmission } from '../../require
 import { useUIStore } from '../../../store/uiStore';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import courseService from '../../../api/services/course.service';
-import { useAllBookings, useConfirmBooking, useCancelBooking, useMarkAttendance, useMarkPayment } from '../../bookings/hooks/useBookings';
+import { useAllBookings, useApproveBooking, useMarkPayment } from '../../bookings/hooks/useBookings';
 import StatusBadge from '../../../components/ui/StatusBadge';
 import { BookingStatus } from '../../../types';
 import type { Booking } from '../../../types';
 import toast from 'react-hot-toast';
 
-type WorkshopActionType = 'confirm' | 'cancel' | 'attended' | 'no_show' | 'payment';
+type WorkshopActionType = 'approve' | 'payment';
 
 export default function EnrollmentRequestsPage() {
           const theme = useTheme();
@@ -100,46 +100,33 @@ export default function EnrollmentRequestsPage() {
           };
 
           // ── Workshop booking actions ──
-          const confirmBooking = useConfirmBooking();
-          const cancelBooking = useCancelBooking();
-          const markAttendance = useMarkAttendance();
+          const approveBooking = useApproveBooking();
           const markPayment = useMarkPayment();
 
           const [workshopActionDialog, setWorkshopActionDialog] = useState<{
                     open: boolean; type: WorkshopActionType; booking: Booking | null;
-          }>({ open: false, type: 'confirm', booking: null });
+          }>({ open: false, type: 'approve', booking: null });
 
           const handleWorkshopAction = async () => {
                     const b = workshopActionDialog.booking;
                     if (!b) return;
                     try {
                               switch (workshopActionDialog.type) {
-                                        case 'confirm': await confirmBooking.mutateAsync(b.id); break;
-                                        case 'cancel': await cancelBooking.mutateAsync(b.id); break;
-                                        case 'attended': await markAttendance.mutateAsync({ id: b.id, status: 'attended' }); break;
-                                        case 'no_show': await markAttendance.mutateAsync({ id: b.id, status: 'no_show' }); break;
+                                        case 'approve': await approveBooking.mutateAsync(b.id); break;
                                         case 'payment': await markPayment.mutateAsync(b.id); break;
                               }
                     } catch { /* handled by mutation */ }
-                    setWorkshopActionDialog({ open: false, type: 'confirm', booking: null });
+                    setWorkshopActionDialog({ open: false, type: 'approve', booking: null });
           };
 
           const getWorkshopActions = (booking: Booking) => {
                     const actions: Array<{ label: string; icon: React.ReactNode; type: WorkshopActionType; color: string }> = [];
-                    if (booking.status === BookingStatus.PENDING) {
+                    if (booking.status === BookingStatus.PENDING_APPROVAL) {
                               actions.push(
-                                        { label: isRTL ? 'تأكيد' : 'Confirm', icon: <CheckCircleIcon />, type: 'confirm', color: 'info' },
-                                        { label: isRTL ? 'إلغاء' : 'Cancel', icon: <CancelIcon />, type: 'cancel', color: 'error' },
+                                        { label: isRTL ? 'قبول' : 'Approve', icon: <CheckCircleIcon />, type: 'approve', color: 'info' }
                               );
                     }
-                    if (booking.status === BookingStatus.CONFIRMED) {
-                              actions.push(
-                                        { label: isRTL ? 'حضر' : 'Attended', icon: <EventAvailable />, type: 'attended', color: 'success' },
-                                        { label: isRTL ? 'لم يحضر' : 'No-Show', icon: <Person />, type: 'no_show', color: 'error' },
-                                        { label: isRTL ? 'إلغاء' : 'Cancel', icon: <CancelIcon />, type: 'cancel', color: 'default' },
-                              );
-                    }
-                    if (booking.status === BookingStatus.ATTENDED) {
+                    if (booking.status === BookingStatus.APPROVED) {
                               actions.push(
                                         { label: isRTL ? 'تأكيد الدفع' : 'Confirm Payment', icon: <MoneyOff />, type: 'payment', color: 'success' },
                               );

@@ -54,7 +54,7 @@ export default function WorkshopListPage() {
                     ...(specializationId ? { specialization_id: specializationId } : {})
           };
           const { data: upcomingData, isLoading: loadingUpcoming } = useUpcomingWorkshops(upcomingFilters);
-          const { data: myData, isLoading: loadingMy } = useMyWorkshops(upcomingFilters);
+          const { data: myData, isLoading: loadingMy } = useMyWorkshops(upcomingFilters, { enabled: !!user });
 
           // Trainers see only their own workshops; others see all upcoming
           const data = isTrainer ? myData : upcomingData;

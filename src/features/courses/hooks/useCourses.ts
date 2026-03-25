@@ -40,17 +40,19 @@ export const useCourseContent = (id: string) => {
           });
 };
 
-export const useMyCourses = () => {
+export const useMyCourses = (options?: { enabled?: boolean }) => {
           return useQuery({
                     queryKey: courseKeys.myCourses,
                     queryFn: () => courseService.getMyCourses(),
+                    ...options,
           });
 };
 
-export const useMyEnrollments = () => {
+export const useMyEnrollments = (options?: { enabled?: boolean }) => {
           return useQuery({
                     queryKey: courseKeys.myEnrollments,
                     queryFn: () => courseService.getMyEnrollments(),
+                    ...options,
           });
 };
 

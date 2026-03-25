@@ -5,12 +5,9 @@ import { BookingStatus, WorkshopStatus } from '../../types';
 type StatusType = BookingStatus | WorkshopStatus | string;
 
 const statusColors: Record<string, ChipProps['color']> = {
-          [BookingStatus.PENDING]: 'warning',
-          [BookingStatus.CONFIRMED]: 'info',
-          [BookingStatus.ATTENDED]: 'success',
+          [BookingStatus.PENDING_APPROVAL]: 'warning',
+          [BookingStatus.APPROVED]: 'info',
           [BookingStatus.PAID]: 'success',
-          [BookingStatus.NO_SHOW]: 'error',
-          [BookingStatus.CANCELLED]: 'default',
           [WorkshopStatus.DRAFT]: 'default',
           [WorkshopStatus.SCHEDULED]: 'info',
           [WorkshopStatus.ONGOING]: 'warning',

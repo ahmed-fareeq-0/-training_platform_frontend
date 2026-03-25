@@ -5,13 +5,12 @@ import {
           Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,
           InputLabel, Select, MenuItem, Stack, IconButton, Alert, Chip, Menu,
           Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-          useTheme, alpha, Card, CardContent, ButtonGroup,
+          useTheme, alpha, Card, CardContent,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BuildIcon from '@mui/icons-material/Build';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
+
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PublishIcon from '@mui/icons-material/Publish';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -19,11 +18,11 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useTranslation } from 'react-i18next';
 import {
           useMyCourses, useAllCourses, useCreateCourse, useDeleteCourse, useUpdateCourse,
-          usePendingEnrollments, useConfirmEnrollment, useUploadCourseMedia,
+          useUploadCourseMedia,
 } from '../hooks/useCourses';
 import { useMyWorkshops, useAllWorkshops, useDeleteWorkshop } from '../../workshops/hooks/useWorkshops';
 import { useAuthStore } from '../../../store/authStore';
-import { Course, CourseEnrollment, UserRole, Workshop } from '../../../types';
+import { Course, UserRole, Workshop } from '../../../types';
 import { useSpecializations } from '../../specializations/hooks/useSpecializations';
 import WorkshopFormDialog from '../../workshops/components/WorkshopFormDialog';
 import dayjs from 'dayjs';
@@ -41,7 +40,6 @@ const CourseManagePage: React.FC = () => {
           // Entity toggle: courses vs workshops
           const [entityType, setEntityType] = useState<EntityType>('courses');
 
-          const [tab, setTab] = useState(0);
           const [courseDialog, setCourseDialog] = useState(false);
           const [courseForm, setCourseForm] = useState<Record<string, string | number | boolean>>({});
           const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(null);
@@ -107,7 +105,6 @@ const CourseManagePage: React.FC = () => {
           // Course data
           const { data: myCourses, isLoading: loadingMy } = useMyCourses();
           const { data: allCoursesData, isLoading: loadingAll } = useAllCourses();
-          const { data: pendingData, isLoading: loadingPending } = usePendingEnrollments();
           const { data: specializations } = useSpecializations();
 
           // Workshop data
@@ -117,7 +114,6 @@ const CourseManagePage: React.FC = () => {
           const createCourse = useCreateCourse();
           const deleteCourse = useDeleteCourse();
           const updateCourse = useUpdateCourse();
-          const confirmEnrollment = useConfirmEnrollment();
           const uploadMedia = useUploadCourseMedia();
           const deleteWorkshop = useDeleteWorkshop();
 
@@ -152,10 +148,9 @@ const CourseManagePage: React.FC = () => {
                     } catch { /* handled */ }
           };
 
-          // Switch entity type and reset tab
+          // Switch entity type
           const handleEntitySwitch = (type: EntityType) => {
                     setEntityType(type);
-                    setTab(0);
           };
 
           // Render Course Table
@@ -341,28 +336,11 @@ const CourseManagePage: React.FC = () => {
                     <Container maxWidth="xl" sx={{ py: 4 }}>
                               {/* ========== HEADER ========== */}
                               {isAdmin ? (
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                                                  <Typography variant="h4" fontWeight={700}>
-                                                            {pageTitle}
-                                                  </Typography>
-                                                  <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                                                            {/* Entity Switcher */}
-                                                            <ButtonGroup variant="outlined" sx={{ borderRadius: 2 }}>
-                                                                      <Button
-                                                                                onClick={() => handleEntitySwitch('courses')}
-                                                                                variant={entityType === 'courses' ? 'contained' : 'outlined'}
-                                                                                sx={{ borderRadius: '8px 0 0 8px', fontWeight: 600 }}
-                                                                      >
-                                                                                {isRTL ? 'الدورات' : 'Courses'}
-                                                                      </Button>
-                                                                      <Button
-                                                                                onClick={() => handleEntitySwitch('workshops')}
-                                                                                variant={entityType === 'workshops' ? 'contained' : 'outlined'}
-                                                                                sx={{ borderRadius: '0 8px 8px 0', fontWeight: 600 }}
-                                                                      >
-                                                                                {isRTL ? 'الورش' : 'Workshops'}
-                                                                      </Button>
-                                                            </ButtonGroup>
+                                        <Box sx={{ mb: 4 }}>
+                                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                                            <Typography variant="h4" fontWeight={700}>
+                                                                      {pageTitle}
+                                                            </Typography>
                                                             {/* New Button */}
                                                             <Button
                                                                       variant="contained"
@@ -382,11 +360,15 @@ const CourseManagePage: React.FC = () => {
                                                                                 : (isRTL ? 'ورشة جديدة' : 'New Workshop')}
                                                             </Button>
                                                   </Box>
+                                                  <Tabs value={entityType} onChange={(_, v) => handleEntitySwitch(v as EntityType)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                                            <Tab value="courses" label={isRTL ? 'الدورات' : 'Courses'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                                                            <Tab value="workshops" label={isRTL ? 'الورش' : 'Workshops'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                                                  </Tabs>
                                         </Box>
                               ) : (
                                         <Card sx={{ mb: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: 1 }}>
-                                                  <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+                                                  <CardContent sx={{ p: { xs: 3, md: 4 }, pb: { xs: 0, md: 0 } }}>
+                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 3 }}>
                                                                       <Box>
                                                                                 <Typography variant="h4" fontWeight={700} gutterBottom>
                                                                                           {pageTitle}
@@ -395,129 +377,44 @@ const CourseManagePage: React.FC = () => {
                                                                                           {pageSubtitle}
                                                                                 </Typography>
                                                                       </Box>
-                                                                      <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                                                                                {/* Entity Switcher */}
-                                                                                <ButtonGroup variant="outlined" sx={{ borderRadius: 5 }}>
-                                                                                          <Button
-                                                                                                    onClick={() => handleEntitySwitch('courses')}
-                                                                                                    variant={entityType === 'courses' ? 'contained' : 'outlined'}
-                                                                                                    sx={{ borderRadius: '8px 0 0 8px', fontWeight: 600 }}
-                                                                                          >
-                                                                                                    {isRTL ? 'الدورات' : 'Courses'}
-                                                                                          </Button>
-                                                                                          <Button
-                                                                                                    onClick={() => handleEntitySwitch('workshops')}
-                                                                                                    variant={entityType === 'workshops' ? 'contained' : 'outlined'}
-                                                                                                    sx={{ borderRadius: '0 8px 8px 0', fontWeight: 600 }}
-                                                                                          >
-                                                                                                    {isRTL ? 'الورش' : 'Workshops'}
-                                                                                          </Button>
-                                                                                </ButtonGroup>
-                                                                                <Button
-                                                                                          variant="contained"
-                                                                                          startIcon={<AddIcon />}
-                                                                                          onClick={() => {
-                                                                                                    if (entityType === 'courses') {
-                                                                                                              setCourseForm({});
-                                                                                                              setCourseDialog(true);
-                                                                                                    } else {
-                                                                                                              setWorkshopFormOpen(true);
-                                                                                                    }
-                                                                                          }}
-                                                                                          sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 600 }}
-                                                                                >
-                                                                                          {entityType === 'courses'
-                                                                                                    ? (isRTL ? 'دورة جديدة' : 'New Course')
-                                                                                                    : (isRTL ? 'ورشة جديدة' : 'New Workshop')}
-                                                                                </Button>
-                                                                      </Box>
+                                                                      <Button
+                                                                                variant="contained"
+                                                                                startIcon={<AddIcon />}
+                                                                                onClick={() => {
+                                                                                          if (entityType === 'courses') {
+                                                                                                    setCourseForm({});
+                                                                                                    setCourseDialog(true);
+                                                                                          } else {
+                                                                                                    setWorkshopFormOpen(true);
+                                                                                          }
+                                                                                }}
+                                                                                sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 600 }}
+                                                                      >
+                                                                                {entityType === 'courses'
+                                                                                          ? (isRTL ? 'دورة جديدة' : 'New Course')
+                                                                                          : (isRTL ? 'ورشة جديدة' : 'New Workshop')}
+                                                                      </Button>
                                                             </Box>
+                                                            <Tabs value={entityType} onChange={(_, v) => handleEntitySwitch(v as EntityType)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                                                                      <Tab value="courses" label={isRTL ? 'الدورات' : 'Courses'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                                                                      <Tab value="workshops" label={isRTL ? 'الورش' : 'Workshops'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                                                            </Tabs>
                                                   </CardContent>
                                         </Card>
-                              )}
-
-                              {/* ========== TABS ========== */}
-                              {entityType === 'courses' && isAdmin && (
-                                        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
-                                                  <Tab label={isRTL ? 'دوراتي' : 'My Courses'} />
-                                                  <Tab label={isRTL ? 'كل الدورات' : 'All Courses'} />
-                                                  <Tab label={isRTL ? 'طلبات التسجيل' : 'Pending Enrollments'} />
-                                        </Tabs>
-                              )}
-
-                              {entityType === 'workshops' && isAdmin && (
-                                        <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
-                                                  <Tab label={isRTL ? 'ورشاتي' : 'My Workshops'} />
-                                                  <Tab label={isRTL ? 'كل الورش' : 'All Workshops'} />
-                                        </Tabs>
                               )}
 
                               {/* ========== COURSES CONTENT ========== */}
                               {entityType === 'courses' && (
                                         <>
-                                                  {tab === 0 && renderCourseTable(
+                                                  {!isAdmin && renderCourseTable(
                                                             myCourses || [],
                                                             loadingMy,
                                                             isRTL ? 'لم تقم بإنشاء أي دورات بعد. اضغط على "دورة جديدة" للبدء!' : 'You haven\'t created any courses yet. Click "New Course" to start!'
                                                   )}
-                                                  {tab === 1 && isAdmin && renderCourseTable(
+                                                  {isAdmin && renderCourseTable(
                                                             allCoursesData?.data || [],
                                                             loadingAll,
                                                             isRTL ? 'لا توجد دورات.' : 'No courses found.'
-                                                  )}
-                                                  {tab === 2 && isAdmin && (
-                                                            <>
-                                                                      {loadingPending && <CircularProgress />}
-                                                                      {!loadingPending && (pendingData?.data || []).length === 0 && (
-                                                                                <Alert severity="info">لا يوجد طلبات تسجيل معلقة / No pending enrollments</Alert>
-                                                                      )}
-                                                                      {!loadingPending && (pendingData?.data || []).length > 0 && (
-                                                                                <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-                                                                                          <Table>
-                                                                                                    <TableHead>
-                                                                                                              <TableRow>
-                                                                                                                        <TableCell sx={{ fontWeight: 700 }}>الطالب / Student</TableCell>
-                                                                                                                        <TableCell sx={{ fontWeight: 700 }}>الدورة / Course</TableCell>
-                                                                                                                        <TableCell sx={{ fontWeight: 700 }}>المبلغ / Amount</TableCell>
-                                                                                                                        <TableCell sx={{ fontWeight: 700 }}>طريقة الدفع / Method</TableCell>
-                                                                                                                        <TableCell sx={{ fontWeight: 700 }}>إجراء / Action</TableCell>
-                                                                                                              </TableRow>
-                                                                                                    </TableHead>
-                                                                                                    <TableBody>
-                                                                                                              {(pendingData?.data || []).map((enrollment: CourseEnrollment) => (
-                                                                                                                        <TableRow key={enrollment.id}>
-                                                                                                                                  <TableCell>
-                                                                                                                                            <Typography fontWeight={600}>{enrollment.user_name}</Typography>
-                                                                                                                                            <Typography variant="caption" color="text.secondary">{enrollment.user_email}</Typography>
-                                                                                                                                  </TableCell>
-                                                                                                                                  <TableCell>{enrollment.course_title_ar || enrollment.course_title_en}</TableCell>
-                                                                                                                                  <TableCell>{Number(enrollment.amount_paid).toLocaleString()} IQD</TableCell>
-                                                                                                                                  <TableCell>
-                                                                                                                                            <Chip label={enrollment.payment_method === 'cash' ? 'نقداً' : 'تحويل'} size="small" />
-                                                                                                                                  </TableCell>
-                                                                                                                                  <TableCell>
-                                                                                                                                            <Stack direction="row" spacing={1}>
-                                                                                                                                                      <IconButton
-                                                                                                                                                                color="success"
-                                                                                                                                                                onClick={() => confirmEnrollment.mutate({ enrollmentId: enrollment.id, status: 'active' })}
-                                                                                                                                                      >
-                                                                                                                                                                <CheckCircleIcon />
-                                                                                                                                                      </IconButton>
-                                                                                                                                                      <IconButton
-                                                                                                                                                                color="error"
-                                                                                                                                                                onClick={() => confirmEnrollment.mutate({ enrollmentId: enrollment.id, status: 'cancelled' })}
-                                                                                                                                                      >
-                                                                                                                                                                <CancelIcon />
-                                                                                                                                                      </IconButton>
-                                                                                                                                            </Stack>
-                                                                                                                                  </TableCell>
-                                                                                                                        </TableRow>
-                                                                                                              ))}
-                                                                                                    </TableBody>
-                                                                                          </Table>
-                                                                                </TableContainer>
-                                                                      )}
-                                                            </>
                                                   )}
                                         </>
                               )}
@@ -525,12 +422,12 @@ const CourseManagePage: React.FC = () => {
                               {/* ========== WORKSHOPS CONTENT ========== */}
                               {entityType === 'workshops' && (
                                         <>
-                                                  {tab === 0 && renderWorkshopTable(
+                                                  {!isAdmin && renderWorkshopTable(
                                                             myWorkshops,
                                                             loadingMyWorkshops,
                                                             isRTL ? 'لم تقم بإنشاء أي ورش بعد. اضغط على "ورشة جديدة" للبدء!' : 'You haven\'t created any workshops yet. Click "New Workshop" to start!'
                                                   )}
-                                                  {tab === 1 && isAdmin && renderWorkshopTable(
+                                                  {isAdmin && renderWorkshopTable(
                                                             allWorkshops,
                                                             loadingAllWorkshops,
                                                             isRTL ? 'لا توجد ورش.' : 'No workshops found.'

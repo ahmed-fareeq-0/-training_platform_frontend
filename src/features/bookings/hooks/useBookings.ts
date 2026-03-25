@@ -96,29 +96,5 @@ export const useCreateBooking = () => {
           });
 };
 
-export const useConfirmBooking = () => useBookingMutation(bookingService.confirm, 'Booking confirmed / تم التأكيد');
-export const useCancelBooking = () => useBookingMutation(bookingService.cancel, 'Booking cancelled / تم الإلغاء');
+export const useApproveBooking = () => useBookingMutation(bookingService.approve, 'Booking approved / تم الموافقة');
 export const useMarkPayment = () => useBookingMutation(bookingService.markPayment, 'Payment confirmed / تم تأكيد الدفع');
-
-export const useMarkAttendance = () => {
-          const qc = useQueryClient();
-          return useMutation({
-                    mutationFn: ({ id, status }: { id: string; status: 'attended' | 'no_show' }) =>
-                              bookingService.markAttendance(id, status),
-                    onSuccess: () => {
-                              qc.invalidateQueries({ queryKey: bookingKeys.all });
-                              toast.success('Attendance updated / تم تحديث الحضور');
-                    },
-          });
-};
-
-export const useBulkAttendance = () => {
-          const qc = useQueryClient();
-          return useMutation({
-                    mutationFn: bookingService.markBulkAttendance,
-                    onSuccess: () => {
-                              qc.invalidateQueries({ queryKey: bookingKeys.all });
-                              toast.success('Bulk attendance updated / تم تحديث الحضور الجماعي');
-                    },
-          });
-};

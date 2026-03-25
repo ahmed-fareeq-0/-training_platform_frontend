@@ -28,7 +28,7 @@ const CourseListPage: React.FC = () => {
                     limit: 12,
                     specialization_id: specFilter || undefined,
           });
-          const { data: myCoursesData, isLoading: loadingMy } = useMyCourses();
+          const { data: myCoursesData, isLoading: loadingMy } = useMyCourses({ enabled: !!user });
           const { data: specializations } = useSpecializations();
 
           // Trainers see only their own courses; others see all published

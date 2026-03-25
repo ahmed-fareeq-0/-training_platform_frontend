@@ -9,8 +9,6 @@ import RegisterPage from '../features/auth/pages/RegisterPage';
 
 // Dashboard pages
 import AdminDashboard from '../features/dashboard/pages/AdminDashboard';
-import TraineeDashboard from '../features/dashboard/pages/TraineeDashboard';
-import TrainerDashboard from '../features/dashboard/pages/TrainerDashboard';
 import HomePage from '../features/dashboard/pages/HomePage';
 
 // Feature pages
@@ -26,7 +24,6 @@ import UsersPage from '../features/users/pages/UsersPage';
 import ManagersPage from '../features/managers/pages/ManagersPage';
 import TrainersPage from '../features/trainers/pages/TrainersPage';
 
-import StatisticsPage from '../features/statistics/pages/StatisticsPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
 
 import CourseListPage from '../features/courses/pages/CourseListPage';
@@ -62,11 +59,8 @@ const router = createBrowserRouter([
 
                               // Dashboards
                               { path: 'home', element: <AuthGuard><HomePage /></AuthGuard> },
-                              { path: 'dashboard', element: <AuthGuard><TraineeDashboard /></AuthGuard> },
                               { path: 'dashboard/admin', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN]}><AdminDashboard /></RoleGuard></AuthGuard> },
                               { path: 'dashboard/manager', element: <AuthGuard><RoleGuard roles={[UserRole.MANAGER]}><AdminDashboard /></RoleGuard></AuthGuard> },
-                              { path: 'dashboard/trainer', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINER]}><TrainerDashboard /></RoleGuard></AuthGuard> },
-                              { path: 'dashboard/trainee', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINEE]}><TraineeDashboard /></RoleGuard></AuthGuard> },
 
                               // Workshops (Public and Protected)
                               { path: 'workshops', element: <WorkshopListPage /> },
@@ -104,9 +98,6 @@ const router = createBrowserRouter([
                               { path: 'notifications', element: <AuthGuard><NotificationsPage /></AuthGuard> },
 
 
-
-                              // Statistics (SuperAdmin / Manager)
-                              { path: 'statistics', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><StatisticsPage /></RoleGuard></AuthGuard> },
 
                               // Profile
                               { path: 'profile', element: <AuthGuard><ProfilePage /></AuthGuard> },

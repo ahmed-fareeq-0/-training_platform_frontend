@@ -47,7 +47,7 @@ const CourseDetailPage: React.FC = () => {
 
           const { data: course, isLoading } = useCourseById(id!);
           const enrollMutation = useEnrollInCourse();
-          const { data: myEnrollments } = useMyEnrollments();
+          const { data: myEnrollments } = useMyEnrollments({ enabled: !!user });
           const { guard: enrollGuard, isLocked: isEnrollLocked } = useActionGuard();
 
           // Check if user is actively enrolled in this course

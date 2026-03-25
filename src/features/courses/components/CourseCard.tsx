@@ -9,6 +9,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import StarIcon from '@mui/icons-material/Star';
 import { useUIStore } from '../../../store/uiStore';
+import { useAuthStore } from '../../../store/authStore';
 
 interface CourseCardProps {
         course: Course;
@@ -30,7 +31,8 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
         const navigate = useNavigate();
         const theme = useTheme();
         const { locale } = useUIStore();
-        const { data: myEnrollments } = useMyEnrollments();
+        const { user } = useAuthStore();
+        const { data: myEnrollments } = useMyEnrollments({ enabled: !!user });
 
         const isEnrolled = React.useMemo(() => {
                 if (!myEnrollments || !course.id) return false;

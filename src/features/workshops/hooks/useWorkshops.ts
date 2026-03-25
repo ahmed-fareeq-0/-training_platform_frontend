@@ -26,10 +26,11 @@ export const useAllWorkshops = (filters: WorkshopFilters = { page: 1, limit: 10 
                     queryFn: () => workshopService.getAll(filters),
           });
 
-export const useMyWorkshops = (filters: WorkshopFilters = { page: 1, limit: 10 }) =>
+export const useMyWorkshops = (filters: WorkshopFilters = { page: 1, limit: 10 }, options?: { enabled?: boolean }) =>
           useQuery({
                     queryKey: [...workshopKeys.all, 'my', filters],
                     queryFn: () => workshopService.getMyWorkshops(filters),
+                    ...options,
           });
 
 export const useBookmarkedWorkshops = (filters: WorkshopFilters = { page: 1, limit: 12 }) =>

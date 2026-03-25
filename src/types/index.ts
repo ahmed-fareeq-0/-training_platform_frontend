@@ -60,12 +60,8 @@ export interface LoginResponse {
 // ==========================================
 
 export enum BookingStatus {
-          PENDING_REVIEW = 'pending_review',
-          PENDING = 'pending',
-          CONFIRMED = 'confirmed',
-          CANCELLED = 'cancelled',
-          ATTENDED = 'attended',
-          NO_SHOW = 'no_show',
+          PENDING_APPROVAL = 'pending_approval',
+          APPROVED = 'approved',
           PAID = 'paid',
 }
 
@@ -84,7 +80,7 @@ export enum WorkshopStatus {
 export enum NotificationType {
           BOOKING_CREATED = 'booking_created',
           BOOKING_CONFIRMED = 'booking_confirmed',
-          BOOKING_CANCELLED = 'booking_cancelled',
+        
           BOOKING_ATTENDED = 'booking_attended',
           BOOKING_PAID = 'booking_paid',
           WORKSHOP_APPROVED = 'workshop_approved',
