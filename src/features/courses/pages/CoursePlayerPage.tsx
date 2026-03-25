@@ -33,21 +33,9 @@ import { CourseSection, CourseLesson } from '../../../types';
 import { CourseRatingDialog } from '../components/CourseRatingDialog';
 import { useTheme as useMuiTheme } from '@mui/material';
 import { useUIStore } from '../../../store/uiStore';
+import { CustomTabPanel } from '../components/courseUtils';
 
-// ─── TabPanel ───
-interface TabPanelProps {
-          children?: React.ReactNode;
-          index: number;
-          value: number;
-}
-function CustomTabPanel(props: TabPanelProps) {
-          const { children, value, index, ...other } = props;
-          return (
-                    <div role="tabpanel" hidden={value !== index} {...other}>
-                              {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-                    </div>
-          );
-}
+
 
 // ─── Stable Video Player Component ───
 interface StableVideoPlayerProps {

@@ -110,26 +110,6 @@ const managerService = {
 };
 
 
-
-const reviewService = {
-          getByWorkshop: async (wid: string, params?: { page?: number }) => {
-                    const res = await api.get<PaginatedResponse<Record<string, unknown>>>(ENDPOINTS.REVIEWS.BY_WORKSHOP(wid), { params });
-                    return res.data;
-          },
-          create: async (data: Record<string, unknown>) => {
-                    const res = await api.post<ApiResponse<Record<string, unknown>>>(ENDPOINTS.REVIEWS.BASE, data);
-                    return res.data.data;
-          },
-          update: async (id: string, data: Record<string, unknown>) => {
-                    const res = await api.put<ApiResponse<Record<string, unknown>>>(ENDPOINTS.REVIEWS.BY_ID(id), data);
-                    return res.data.data;
-          },
-          delete: async (id: string) => {
-                    const res = await api.delete<ApiResponse<null>>(ENDPOINTS.REVIEWS.BY_ID(id));
-                    return res.data;
-          },
-};
-
 const statisticsService = {
           getDashboard: async () => {
                     const res = await api.get<ApiResponse<Record<string, unknown>>>(ENDPOINTS.STATISTICS.DASHBOARD);
@@ -145,4 +125,4 @@ const statisticsService = {
           },
 };
 
-export { userService, trainerService, managerService, reviewService, statisticsService };
+export { userService, trainerService, managerService, statisticsService };

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Grid, Card, CardContent, useTheme, alpha, Button, Chip, CircularProgress } from '@mui/material';
-import { School, EventSeat, Notifications, Star, ArrowForward, MenuBook } from '@mui/icons-material';
+import { School, EventSeat, Notifications, ArrowForward, MenuBook } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import workshopService from '../../../api/services/workshop.service';
 
@@ -25,7 +25,6 @@ export default function TraineeDashboard() {
                     { title: locale === 'ar' ? 'تصفح الدورات' : 'Browse Courses', icon: <MenuBook />, path: '/courses', color: theme.palette.secondary.main, desc: locale === 'ar' ? 'اكتشف الدورات المتاحة وسجّل فيها' : 'Discover courses and enroll' },
                     { title: locale === 'ar' ? 'حجوزاتي' : 'My Bookings', icon: <EventSeat />, path: '/bookings', color: theme.palette.info.main, desc: locale === 'ar' ? 'تتبع حالة حجوزاتك' : 'Track your booking status' },
                     { title: locale === 'ar' ? 'الإشعارات' : 'Notifications', icon: <Notifications />, path: '/notifications', color: theme.palette.warning.main, desc: locale === 'ar' ? 'تحقق من آخر التحديثات' : 'Check latest updates' },
-                    { title: locale === 'ar' ? 'التقييمات' : 'Reviews', icon: <Star />, path: '/reviews', color: theme.palette.success.main, desc: locale === 'ar' ? 'قيّم الورش التي حضرتها' : 'Rate workshops you attended' },
           ];
 
           return (

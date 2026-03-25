@@ -121,15 +121,15 @@ api.interceptors.response.use(
                     const message = error.response?.data?.message || error.message;
 
                     if (error.response?.status === 403) {
-                              toast.error('Access denied / غير مسموح بالوصول');
+                              toast.error('Access denied / غير مسموح بالوصول', { id: 'err-403' });
                     } else if (error.response?.status === 404) {
                               // handled by caller
                     } else if (error.response?.status === 409) {
-                              toast.error(message);
+                              toast.error(message, { id: `err-409-${message}` });
                     } else if (error.response?.status === 500) {
-                              toast.error('Server error. Please try again / خطأ في الخادم');
+                              toast.error('Server error. Please try again / خطأ في الخادم', { id: 'err-500' });
                     } else if (!error.response) {
-                              toast.error('Network error. Check your connection / خطأ في الاتصال');
+                              toast.error('Network error. Check your connection / خطأ في الاتصال', { id: 'err-network' });
                     }
 
                     return Promise.reject(error);

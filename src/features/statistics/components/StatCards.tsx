@@ -1,5 +1,5 @@
 import { Grid, Card, CardContent, Typography, Box, useTheme, alpha } from '@mui/material';
-import { People, School, EventSeat, TrendingUp, Star, CalendarMonth } from '@mui/icons-material';
+import { People, School, EventSeat, TrendingUp, CalendarMonth } from '@mui/icons-material';
 import { useUIStore } from '../../../store/uiStore';
 
 interface StatCardsProps {
@@ -36,16 +36,10 @@ export default function StatCards({ dashboard }: StatCardsProps) {
                               color: theme.palette.success.main
                     },
                     {
-                              label: locale === 'ar' ? 'متوسط التقييم' : 'Avg Rating',
-                              value: dashboard.reviews?.average_rating ? `${dashboard.reviews.average_rating}/5` : '—',
-                              icon: <Star />,
-                              color: theme.palette.warning.main
-                    },
-                    {
                               label: locale === 'ar' ? 'هذا الشهر' : 'This Month',
                               value: dashboard.workshops?.this_month || 0,
                               icon: <CalendarMonth />,
-                              color: theme.palette.error.main
+                              color: theme.palette.warning.main
                     },
           ];
 

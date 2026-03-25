@@ -6,6 +6,7 @@ import Sidebar, { DRAWER_WIDTH } from './Sidebar';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { UserRole } from '../../types';
+import GlobalLoadingBar from '../common/GlobalLoadingBar';
 
 export default function AppLayout() {
   const theme = useTheme();
@@ -19,6 +20,7 @@ export default function AppLayout() {
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+      <GlobalLoadingBar />
       {!isHeaderNavRole && <Sidebar />}
       <Header />
       <Box

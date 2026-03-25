@@ -28,7 +28,7 @@ import TrainersPage from '../features/trainers/pages/TrainersPage';
 
 import StatisticsPage from '../features/statistics/pages/StatisticsPage';
 import ProfilePage from '../features/profile/pages/ProfilePage';
-import ReviewsPage from '../features/reviews/pages/ReviewsPage';
+
 import CourseListPage from '../features/courses/pages/CourseListPage';
 import CourseDetailPage from '../features/courses/pages/CourseDetailPage';
 import CoursePlayerPage from '../features/courses/pages/CoursePlayerPage';
@@ -100,8 +100,7 @@ const router = createBrowserRouter([
                               // Notifications
                               { path: 'notifications', element: <AuthGuard><NotificationsPage /></AuthGuard> },
 
-                              // Reviews
-                              { path: 'reviews', element: <AuthGuard><ReviewsPage /></AuthGuard> },
+
 
                               // Statistics (SuperAdmin / Manager)
                               { path: 'statistics', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><StatisticsPage /></RoleGuard></AuthGuard> },

@@ -21,8 +21,8 @@ import {
           SupervisorAccount as ManagersIcon,
           Person as TrainersIcon,
 
+
           Category as SpecializationsIcon,
-          Star as ReviewsIcon,
           BarChart as StatisticsIcon,
           Person,
           Logout,
@@ -83,7 +83,6 @@ export const getNavItems = (userRole: UserRole): NavItem[] => {
           }
 
           items.push(
-                    { key: 'reviews', labelKey: 'nav.reviews', icon: <ReviewsIcon />, path: '/reviews' },
                     { key: 'profile', labelKey: 'nav.profile', icon: <Person />, path: '/profile' },
           );
 

@@ -97,12 +97,6 @@ export const ENDPOINTS = {
                     READ: (id: string) => `/notifications/${id}/read`,
                     DELETE: (id: string) => `/notifications/${id}`,
           },
-          REVIEWS: {
-                    BASE: '/reviews',
-                    BY_ID: (id: string) => `/reviews/${id}`,
-                    BY_WORKSHOP: (wid: string) => `/reviews/workshop/${wid}`,
-                    BY_TRAINER: (tid: string) => `/reviews/trainer/${tid}`,
-          },
           STATISTICS: {
                     DASHBOARD: '/statistics/dashboard',
                     WORKSHOPS: '/statistics/workshops',

@@ -12,8 +12,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline';
-import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import ArticleIcon from '@mui/icons-material/Article';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import SchoolIcon from '@mui/icons-material/School';
 import LockIcon from '@mui/icons-material/Lock';
@@ -37,43 +35,8 @@ import { useUIStore } from '../../../store/uiStore';
 import { useTrainingRequirements, useSubmitRequirement } from '../../requirements/hooks/useRequirements';
 import { useUploads } from '../../../hooks/useUploads';
 import toast from 'react-hot-toast';
-
-interface TabPanelProps {
-          children?: React.ReactNode;
-          index: number;
-          value: number;
-}
-
-function CustomTabPanel(props: TabPanelProps) {
-          const { children, value, index, ...other } = props;
-          return (
-                    <div
-                              role="tabpanel"
-                              hidden={value !== index}
-                              id={`course-tabpanel-${index}`}
-                              aria-labelledby={`course-tab-${index}`}
-                              {...other}
-                    >
-                              {value === index && (
-                                        <Box sx={{ py: 3 }}>
-                                                  {children}
-                                        </Box>
-                              )}
-                    </div>
-          );
-}
-
-const lessonIcons: Record<string, React.ReactNode> = {
-          video: <PlayCircleOutlineIcon color="primary" />,
-          pdf: <PictureAsPdfIcon color="error" />,
-          text: <ArticleIcon color="action" />,
-};
-
-const levelLabels: Record<string, string> = {
-          beginner: 'مبتدئ / Beginner',
-          intermediate: 'متوسط / Intermediate',
-          advanced: 'متقدم / Advanced',
-};
+import { CustomTabPanel, lessonIcons, levelLabels, formatDuration, formatHoursMinutes, SidebarInfoRow } from '../components/courseUtils';
+import { useActionGuard } from '../../../hooks/useActionGuard';
 
 const CourseDetailPage: React.FC = () => {
           const { id } = useParams<{ id: string }>();
@@ -85,6 +48,7 @@ const CourseDetailPage: React.FC = () => {
           const { data: course, isLoading } = useCourseById(id!);
           const enrollMutation = useEnrollInCourse();
           const { data: myEnrollments } = useMyEnrollments();
+          const { guard: enrollGuard, isLocked: isEnrollLocked } = useActionGuard();
 
           // Check if user is actively enrolled in this course
           const myEnrollment = useMemo(() => {
@@ -161,19 +125,6 @@ const CourseDetailPage: React.FC = () => {
                     setActiveTab(newValue);
           };
 
-          const formatDuration = (seconds: number) => {
-                    const m = Math.floor(seconds / 60);
-                    const s = seconds % 60;
-                    return `${m}:${s.toString().padStart(2, '0')}`;
-          };
-
-          const formatHoursMinutes = (totalMinutes: number) => {
-                    const h = Math.floor(totalMinutes / 60);
-                    const m = totalMinutes % 60;
-                    if (h > 0 && m > 0) return `${h}h ${m}m`;
-                    if (h > 0) return `${h}h`;
-                    return `${m}m`;
-          };
 
           const totalLessons = course?.sections?.reduce(
                     (acc: number, sec: CourseSection) => acc + (sec.lessons?.length || 0), 0
@@ -1038,8 +989,8 @@ const CourseDetailPage: React.FC = () => {
                                                   </Button>
                                                   <Button
                                                             variant="contained"
-                                                            onClick={handleEnroll}
-                                                            disabled={enrollMutation.isPending}
+                                                            onClick={enrollGuard(handleEnroll)}
+                                                            disabled={enrollMutation.isPending || isEnrollLocked}
                                                             startIcon={enrollMutation.isPending ? <CircularProgress size={18} /> : <CheckCircleIcon />}
                                                             sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
                                                   >
@@ -1112,21 +1063,5 @@ const CourseDetailPage: React.FC = () => {
                     </Container>
           );
 };
-
-// ==========================================
-// Sub-components
-// ==========================================
-
-function SidebarInfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-          return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid', borderColor: 'divider', pb: 1.5, '&:last-child': { borderBottom: 'none', pb: 0 } }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, color: 'text.secondary' }}>
-                                        {icon}
-                                        <Typography variant="body2" fontWeight={600}>{label}</Typography>
-                              </Box>
-                              <Typography variant="body2" fontWeight={700} color="text.primary">{value || '—'}</Typography>
-                    </Box>
-          );
-}
 
 export default CourseDetailPage;
