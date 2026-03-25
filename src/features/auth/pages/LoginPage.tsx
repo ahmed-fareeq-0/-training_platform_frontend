@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../../../store/authStore';
 import authService from '../../../api/services/auth.service';
 import { getDashboardPath } from '../../../components/guards/RouteGuards';
+import { UserRole } from '../../../types';
 import { AxiosError } from 'axios';
 
 const getLoginSchema = (t: any) => z.object({
@@ -41,7 +42,11 @@ export default function LoginPage() {
                               const result = await authService.login(data);
                               login(result.user, result.accessToken, result.refreshToken);
                               toast.success(t('auth.loginSuccess'));
-                              navigate(getDashboardPath(result.user.role));
+                              if (result.user.role === UserRole.SUPER_ADMIN) {
+                                        navigate(getDashboardPath(result.user.role));
+                              } else {
+                                        navigate('/home');
+                              }
                     } catch (error) {
                               const axiosError = error as AxiosError<{ message?: string }>;
                               setServerError(axiosError.response?.data?.message || t('auth.invalidCredentials'));

@@ -61,8 +61,10 @@ export const GuestGuard = ({ children }: { children: React.ReactNode }) => {
           }
 
           if (isAuthenticated && user) {
-                    const dashboardPath = getDashboardPath(user.role);
-                    return <Navigate to={dashboardPath} replace />;
+                    if (user.role === UserRole.SUPER_ADMIN) {
+                              return <Navigate to={getDashboardPath(user.role)} replace />;
+                    }
+                    return <Navigate to="/home" replace />;
           }
 
           return <>{children}</>;

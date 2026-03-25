@@ -40,7 +40,10 @@ import { useAuthStore } from '../store/authStore';
 const InitialRoute = () => {
           const { isAuthenticated, user } = useAuthStore();
           if (isAuthenticated && user) {
-                    return <Navigate to={getDashboardPath(user.role)} replace />;
+                    if (user.role === UserRole.SUPER_ADMIN) {
+                              return <Navigate to={getDashboardPath(user.role)} replace />;
+                    }
+                    return <Navigate to="/home" replace />;
           }
           return <HomePage />;
 };
@@ -58,7 +61,7 @@ const router = createBrowserRouter([
                               { index: true, element: <InitialRoute /> },
 
                               // Dashboards
-                              { path: 'home', element: <AuthGuard><RoleGuard roles={[UserRole.TRAINEE, UserRole.TRAINER, UserRole.MANAGER]}><HomePage /></RoleGuard></AuthGuard> },
+                              { path: 'home', element: <AuthGuard><HomePage /></AuthGuard> },
                               { path: 'dashboard', element: <AuthGuard><TraineeDashboard /></AuthGuard> },
                               { path: 'dashboard/admin', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN]}><AdminDashboard /></RoleGuard></AuthGuard> },
                               { path: 'dashboard/manager', element: <AuthGuard><RoleGuard roles={[UserRole.MANAGER]}><AdminDashboard /></RoleGuard></AuthGuard> },

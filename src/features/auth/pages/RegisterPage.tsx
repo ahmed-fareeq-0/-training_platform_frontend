@@ -116,7 +116,11 @@ export default function RegisterPage() {
       const result = await authService.register({ ...payload, role: UserRole.TRAINEE });
       login(result.user, result.accessToken, result.refreshToken);
       toast.success(t('auth.registerSuccess'));
-      navigate(getDashboardPath(result.user.role));
+      if (result.user.role === UserRole.SUPER_ADMIN) {
+        navigate(getDashboardPath(result.user.role));
+      } else {
+        navigate('/home');
+      }
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
       setServerError(axiosError.response?.data?.message || 'Registration failed');

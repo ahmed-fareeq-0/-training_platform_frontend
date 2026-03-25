@@ -28,8 +28,6 @@ import { useUIStore } from '../../../store/uiStore';
 import { useAuthStore } from '../../../store/authStore';
 import { UserRole, RequirementType } from '../../../types';
 import { getImageUrl } from '../../../utils/imageUtils';
-import DailyAttendanceManager from '../components/attendance/DailyAttendanceManager';
-import AttendanceCalendar from '../components/attendance/AttendanceCalendar';
 import { useTrainingRequirements, useSubmitRequirement } from '../../requirements/hooks/useRequirements';
 import { useUploads } from '../../../hooks/useUploads';
 
@@ -260,7 +258,6 @@ export default function WorkshopDetailPage() {
                                                             >
                                                                       <Tab iconPosition="start" icon={<DescriptionIcon sx={{ mr: 1 }} />} label={locale === 'ar' ? 'الوصف' : 'Description'} />
                                                                       <Tab iconPosition="start" icon={<FormatListBulletedIcon sx={{ mr: 1 }} />} label={locale === 'ar' ? 'المنهج الدراسي' : 'Syllabus'} />
-                                                                      <Tab iconPosition="start" icon={<CalendarMonthIcon sx={{ mr: 1 }} />} label={locale === 'ar' ? 'الجدول والحضور' : 'Schedule & Attendance'} />
                                                                       <Tab iconPosition="start" icon={<SchoolIcon sx={{ mr: 1 }} />} label={locale === 'ar' ? 'المدرّب' : 'Instructor'} />
                                                             </Tabs>
                                                   </Box>
@@ -382,27 +379,8 @@ export default function WorkshopDetailPage() {
                                                             )}
                                                   </CustomTabPanel>
 
-                                                  {/* ----------- TAB 2: SCHEDULE & ATTENDANCE ----------- */}
+                                                  {/* ----------- TAB 2: INSTRUCTOR ----------- */}
                                                   <CustomTabPanel value={activeTab} index={2}>
-                                                            <Stack spacing={4}>
-                                                                      {user?.role === UserRole.TRAINEE && (
-                                                                                <AttendanceCalendar workshopId={id!} />
-                                                                      )}
-
-                                                                      {(isAdminOrManager || workshop.trainer_user_id === user?.id) && (
-                                                                                <DailyAttendanceManager workshopId={id!} />
-                                                                      )}
-
-                                                                      {user?.role !== UserRole.TRAINEE && !isAdminOrManager && workshop.trainer_user_id !== user?.id && (
-                                                                                <Alert severity="info" sx={{ borderRadius: 3 }}>
-                                                                                          {locale === 'ar' ? 'سجل حضور الورشة غير متاح لحسابك.' : 'Attendance records are not available for your account.'}
-                                                                                </Alert>
-                                                                      )}
-                                                            </Stack>
-                                                  </CustomTabPanel>
-
-                                                  {/* ----------- TAB 3: INSTRUCTOR ----------- */}
-                                                  <CustomTabPanel value={activeTab} index={3}>
                                                             {workshop.trainer_name ? (() => {
                                                                       const isAr = locale === 'ar';
                                                                       const isUniversityProf = workshop.trainer_type === 'university_professor';

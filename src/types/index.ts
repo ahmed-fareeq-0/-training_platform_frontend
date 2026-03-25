@@ -79,33 +79,7 @@ export enum WorkshopStatus {
 
 
 
-export enum AttendanceStatus {
-          PRESENT = 'present',
-          ABSENT = 'absent',
-          EXCUSED = 'excused',
-}
 
-export interface WorkshopAttendance {
-          id: string;
-          workshop_id: string;
-          trainee_id: string;
-          date: string;
-          status: AttendanceStatus;
-          notes?: string;
-          recorded_by?: string;
-          created_at: string;
-          updated_at: string;
-}
-
-export interface DailyAttendanceRecord {
-          trainee_id: string;
-          full_name: string;
-          email: string;
-          profile_image?: string;
-          booking_id: string;
-          attendance_status?: AttendanceStatus;
-          attendance_notes?: string;
-}
 
 export enum NotificationType {
           BOOKING_CREATED = 'booking_created',
@@ -220,8 +194,6 @@ export interface Booking {
           user?: User;
           trainer?: Trainer;
           specialization?: Specialization;
-          confirmed_by_name?: string;
-          attendance_marked_by_name?: string;
           payment_confirmed_by_name?: string;
 }
 
