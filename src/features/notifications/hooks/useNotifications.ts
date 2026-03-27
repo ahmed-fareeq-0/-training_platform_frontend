@@ -5,44 +5,44 @@ import { useUIStore } from '../../../store/uiStore';
 import { useAuthStore } from '../../../store/authStore';
 
 export const useNotifications = (page: number = 1, limit: number = 30) => {
-          const { isAuthenticated } = useAuthStore();
-          return useQuery({
-                    queryKey: ['notifications', page],
-                    queryFn: () => notificationService.getAll({ page, limit }),
-                    enabled: isAuthenticated,
-          });
+    const { isAuthenticated } = useAuthStore();
+    return useQuery({
+        queryKey: ['notifications', page],
+        queryFn: () => notificationService.getAll({ page, limit }),
+        enabled: isAuthenticated,
+    });
 };
 
 export const useUnreadCount = () => {
-          const { isAuthenticated } = useAuthStore();
-          return useQuery({
-                    queryKey: ['notifications', 'unread'],
-                    queryFn: notificationService.getUnreadCount,
-                    enabled: isAuthenticated,
-          });
+    const { isAuthenticated } = useAuthStore();
+    return useQuery({
+        queryKey: ['notifications', 'unread'],
+        queryFn: notificationService.getUnreadCount,
+        enabled: isAuthenticated,
+    });
 };
 
 export const useNotificationMutations = () => {
-          const qc = useQueryClient();
-          const { locale } = useUIStore();
+    const qc = useQueryClient();
+    const { locale } = useUIStore();
 
-          const markRead = useMutation({
-                    mutationFn: notificationService.markAsRead,
-                    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
-          });
+    const markRead = useMutation({
+        mutationFn: notificationService.markAsRead,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+    });
 
-          const markAllRead = useMutation({
-                    mutationFn: notificationService.markAllAsRead,
-                    onSuccess: () => {
-                              qc.invalidateQueries({ queryKey: ['notifications'] });
-                              toast.success(locale === 'ar' ? 'تم تحديد الكل كمقروء' : 'All marked as read');
-                    },
-          });
+    const markAllRead = useMutation({
+        mutationFn: notificationService.markAllAsRead,
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['notifications'] });
+            toast.success(locale === 'ar' ? 'تم تحديد الكل كمقروء' : 'All marked as read');
+        },
+    });
 
-          const remove = useMutation({
-                    mutationFn: notificationService.delete,
-                    onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
-          });
+    const remove = useMutation({
+        mutationFn: notificationService.delete,
+        onSuccess: () => qc.invalidateQueries({ queryKey: ['notifications'] }),
+    });
 
-          return { markRead, markAllRead, remove };
+    return { markRead, markAllRead, remove };
 };

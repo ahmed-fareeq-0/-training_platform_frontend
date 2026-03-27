@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-          Box, Typography, Container, Button, CircularProgress, Tab, Tabs,
-          Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,
-          InputLabel, Select, MenuItem, Stack, IconButton, Alert, Chip, Menu,
-          Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-          useTheme, alpha, Card, CardContent,
+    Box, Typography, Button, CircularProgress, Tab, Tabs,
+    Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,
+    InputLabel, Select, MenuItem, Stack, IconButton, Alert, Chip, Menu,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+    useTheme, alpha, Card, CardContent,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -17,8 +17,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useTranslation } from 'react-i18next';
 import {
-          useMyCourses, useAllCourses, useCreateCourse, useDeleteCourse, useUpdateCourse,
-          useUploadCourseMedia,
+    useMyCourses, useAllCourses, useCreateCourse, useDeleteCourse, useUpdateCourse,
+    useUploadCourseMedia,
 } from '../hooks/useCourses';
 import { useMyWorkshops, useAllWorkshops, useDeleteWorkshop } from '../../workshops/hooks/useWorkshops';
 import { useAuthStore } from '../../../store/authStore';
@@ -30,533 +30,545 @@ import dayjs from 'dayjs';
 type EntityType = 'courses' | 'workshops';
 
 const CourseManagePage: React.FC = () => {
-          const navigate = useNavigate();
-          const { user } = useAuthStore();
-          const theme = useTheme();
-          const { i18n } = useTranslation();
-          const isRTL = i18n.language === 'ar';
-          const isAdmin = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER;
+    const navigate = useNavigate();
+    const { user } = useAuthStore();
+    const theme = useTheme();
+    const { i18n } = useTranslation();
+    const isRTL = i18n.language === 'ar';
+    const isAdmin = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER;
 
-          // Entity toggle: courses vs workshops
-          const [entityType, setEntityType] = useState<EntityType>('courses');
+    // Entity toggle: courses vs workshops
+    const [entityType, setEntityType] = useState<EntityType>('courses');
 
-          const [courseDialog, setCourseDialog] = useState(false);
-          const [courseForm, setCourseForm] = useState<Record<string, string | number | boolean>>({});
-          const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(null);
-          const [actionMenuCourse, setActionMenuCourse] = useState<Course | null>(null);
-          const [workshopActionMenuAnchor, setWorkshopActionMenuAnchor] = useState<null | HTMLElement>(null);
-          const [workshopActionTarget, setWorkshopActionTarget] = useState<Workshop | null>(null);
+    const [courseDialog, setCourseDialog] = useState(false);
+    const [courseForm, setCourseForm] = useState<Record<string, string | number | boolean>>({});
+    const [actionMenuAnchor, setActionMenuAnchor] = useState<null | HTMLElement>(null);
+    const [actionMenuCourse, setActionMenuCourse] = useState<Course | null>(null);
+    const [workshopActionMenuAnchor, setWorkshopActionMenuAnchor] = useState<null | HTMLElement>(null);
+    const [workshopActionTarget, setWorkshopActionTarget] = useState<Workshop | null>(null);
 
-          // New Workshop dialog
-          const [workshopFormOpen, setWorkshopFormOpen] = useState(false);
+    // New Workshop dialog
+    const [workshopFormOpen, setWorkshopFormOpen] = useState(false);
 
-          const handleActionMenuOpen = (event: React.MouseEvent<HTMLElement>, course: Course) => {
-                    event.stopPropagation();
-                    setActionMenuAnchor(event.currentTarget);
-                    setActionMenuCourse(course);
-          };
-          const handleActionMenuClose = () => {
-                    setActionMenuAnchor(null);
-                    setActionMenuCourse(null);
-          };
+    const handleActionMenuOpen = (event: React.MouseEvent<HTMLElement>, course: Course) => {
+        event.stopPropagation();
+        setActionMenuAnchor(event.currentTarget);
+        setActionMenuCourse(course);
+    };
+    const handleActionMenuClose = () => {
+        setActionMenuAnchor(null);
+        setActionMenuCourse(null);
+    };
 
-          const handleWorkshopMenuOpen = (event: React.MouseEvent<HTMLElement>, workshop: Workshop) => {
-                    event.stopPropagation();
-                    setWorkshopActionMenuAnchor(event.currentTarget);
-                    setWorkshopActionTarget(workshop);
-          };
-          const handleWorkshopMenuClose = () => {
-                    setWorkshopActionMenuAnchor(null);
-                    setWorkshopActionTarget(null);
-          };
+    const handleWorkshopMenuOpen = (event: React.MouseEvent<HTMLElement>, workshop: Workshop) => {
+        event.stopPropagation();
+        setWorkshopActionMenuAnchor(event.currentTarget);
+        setWorkshopActionTarget(workshop);
+    };
+    const handleWorkshopMenuClose = () => {
+        setWorkshopActionMenuAnchor(null);
+        setWorkshopActionTarget(null);
+    };
 
-          const getLevelLabel = (level: string) => {
-                    const labels: Record<string, { ar: string; en: string }> = {
-                              beginner: { ar: 'مبتدئ', en: 'Beginner' },
-                              intermediate: { ar: 'متوسط', en: 'Intermediate' },
-                              advanced: { ar: 'متقدم', en: 'Advanced' },
-                    };
-                    return labels[level]?.[isRTL ? 'ar' : 'en'] || level;
-          };
+    const getLevelLabel = (level: string) => {
+        const labels: Record<string, { ar: string; en: string }> = {
+            beginner: { ar: 'مبتدئ', en: 'Beginner' },
+            intermediate: { ar: 'متوسط', en: 'Intermediate' },
+            advanced: { ar: 'متقدم', en: 'Advanced' },
+        };
+        return labels[level]?.[isRTL ? 'ar' : 'en'] || level;
+    };
 
-          const formatDuration = (totalSeconds: number) => {
-                    if (!totalSeconds || totalSeconds <= 0) return '-';
-                    const totalMinutes = Math.floor(totalSeconds / 60);
-                    const h = Math.floor(totalMinutes / 60);
-                    const m = totalMinutes % 60;
-                    if (h > 0 && m > 0) return `${h}${isRTL ? 'س' : 'h'} ${m}${isRTL ? 'د' : 'm'}`;
-                    if (h > 0) return `${h}${isRTL ? 'س' : 'h'}`;
-                    return `${m}${isRTL ? 'د' : 'm'}`;
-          };
+    const formatDuration = (totalSeconds: number) => {
+        if (!totalSeconds || totalSeconds <= 0) return '-';
+        const totalMinutes = Math.floor(totalSeconds / 60);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        if (h > 0 && m > 0) return `${h}${isRTL ? 'س' : 'h'} ${m}${isRTL ? 'د' : 'm'}`;
+        if (h > 0) return `${h}${isRTL ? 'س' : 'h'}`;
+        return `${m}${isRTL ? 'د' : 'm'}`;
+    };
 
-          const getStatusLabel = (status: string) => {
-                    const map: Record<string, { ar: string; en: string; color: 'success' | 'warning' | 'info' | 'error' | 'default' }> = {
-                              scheduled: { ar: 'مجدولة', en: 'Scheduled', color: 'success' },
-                              approved: { ar: 'معتمدة', en: 'Approved', color: 'info' },
-                              draft: { ar: 'مسودة', en: 'Draft', color: 'warning' },
-                              pending: { ar: 'بانتظار الموافقة', en: 'Pending', color: 'warning' },
-                              completed: { ar: 'مكتملة', en: 'Completed', color: 'default' },
-                              cancelled: { ar: 'ملغاة', en: 'Cancelled', color: 'error' },
-                    };
-                    const entry = map[status] || { ar: status, en: status, color: 'default' as const };
-                    return { label: isRTL ? entry.ar : entry.en, color: entry.color };
-          };
+    const getStatusLabel = (status: string) => {
+        const map: Record<string, { ar: string; en: string; color: 'success' | 'warning' | 'info' | 'error' | 'default' }> = {
+            scheduled: { ar: 'مجدولة', en: 'Scheduled', color: 'success' },
+            approved: { ar: 'معتمدة', en: 'Approved', color: 'info' },
+            draft: { ar: 'مسودة', en: 'Draft', color: 'warning' },
+            pending: { ar: 'بانتظار الموافقة', en: 'Pending', color: 'warning' },
+            completed: { ar: 'مكتملة', en: 'Completed', color: 'default' },
+            cancelled: { ar: 'ملغاة', en: 'Cancelled', color: 'error' },
+        };
+        const entry = map[status] || { ar: status, en: status, color: 'default' as const };
+        return { label: isRTL ? entry.ar : entry.en, color: entry.color };
+    };
 
-          // Course data
-          const { data: myCourses, isLoading: loadingMy } = useMyCourses();
-          const { data: allCoursesData, isLoading: loadingAll } = useAllCourses();
-          const { data: specializations } = useSpecializations();
+    // Course data
+    const { data: myCourses, isLoading: loadingMy } = useMyCourses();
+    const { data: allCoursesData, isLoading: loadingAll } = useAllCourses();
+    const { data: specializations } = useSpecializations();
 
-          // Workshop data
-          const { data: myWorkshopsData, isLoading: loadingMyWorkshops } = useMyWorkshops();
-          const { data: allWorkshopsData, isLoading: loadingAllWorkshops } = useAllWorkshops();
+    // Workshop data
+    const { data: myWorkshopsData, isLoading: loadingMyWorkshops } = useMyWorkshops();
+    const { data: allWorkshopsData, isLoading: loadingAllWorkshops } = useAllWorkshops();
 
-          const createCourse = useCreateCourse();
-          const deleteCourse = useDeleteCourse();
-          const updateCourse = useUpdateCourse();
-          const uploadMedia = useUploadCourseMedia();
-          const deleteWorkshop = useDeleteWorkshop();
+    const createCourse = useCreateCourse();
+    const deleteCourse = useDeleteCourse();
+    const updateCourse = useUpdateCourse();
+    const uploadMedia = useUploadCourseMedia();
+    const deleteWorkshop = useDeleteWorkshop();
 
-          const myWorkshops: Workshop[] = myWorkshopsData?.data || [];
-          const allWorkshops: Workshop[] = allWorkshopsData?.data || [];
+    const myWorkshops: Workshop[] = myWorkshopsData?.data || [];
+    const allWorkshops: Workshop[] = allWorkshopsData?.data || [];
 
-          const handleCreateCourse = async () => {
-                    try {
-                              const result = await createCourse.mutateAsync(courseForm) as any;
-                              setCourseDialog(false);
-                              setCourseForm({});
-                              if (result?.id) {
-                                        navigate(`/courses/${result.id}/edit`);
-                              }
-                    } catch { /* handled */ }
-          };
+    const handleCreateCourse = async () => {
+        try {
+            const result = await createCourse.mutateAsync(courseForm) as any;
+            setCourseDialog(false);
+            setCourseForm({});
+            if (result?.id) {
+                navigate(`/courses/${result.id}/edit`);
+            }
+        } catch { /* handled */ }
+    };
 
-          const handleTogglePublish = async (course: Course) => {
-                    try {
-                              await updateCourse.mutateAsync({ id: course.id, data: { is_published: !course.is_published } });
-                    } catch { /* handled */ }
-          };
+    const handleTogglePublish = async (course: Course) => {
+        try {
+            await updateCourse.mutateAsync({ id: course.id, data: { is_published: !course.is_published } });
+        } catch { /* handled */ }
+    };
 
-          const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    try {
-                              const result = await uploadMedia.mutateAsync({ file, folder: 'covers' }) as { url: string } | undefined;
-                              if (result?.url) {
-                                        setCourseForm(prev => ({ ...prev, cover_image: result.url }));
-                              }
-                    } catch { /* handled */ }
-          };
+    const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const result = await uploadMedia.mutateAsync({ file, folder: 'covers' }) as { url: string } | undefined;
+            if (result?.url) {
+                setCourseForm(prev => ({ ...prev, cover_image: result.url }));
+            }
+        } catch { /* handled */ }
+    };
 
-          // Switch entity type
-          const handleEntitySwitch = (type: EntityType) => {
-                    setEntityType(type);
-          };
+    // Switch entity type
+    const handleEntitySwitch = (type: EntityType) => {
+        setEntityType(type);
+    };
 
-          // Render Course Table
-          const renderCourseTable = (courses: Course[], loading: boolean, emptyMessage: string) => (
-                    <>
-                              {loading && <CircularProgress />}
-                              {!loading && courses.length === 0 && (
-                                        <Alert severity="info" sx={{ borderRadius: 2 }}>{emptyMessage}</Alert>
-                              )}
-                              {!loading && courses.length > 0 && (
-                                        <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
-                                                  <Table>
-                                                            <TableHead>
-                                                                      <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.04) }}>
-                                                                                <TableCell sx={{ fontWeight: 700, width: 56 }}></TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المستوى' : 'Level'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'عنوان الدورة' : 'Course Title'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'الفئة' : 'Category'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدة' : 'Duration'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'الحالة' : 'Status'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدرب' : 'Trainer'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }} align="right">{isRTL ? 'السعر' : 'Price'}</TableCell>
-                                                                      </TableRow>
-                                                            </TableHead>
-                                                            <TableBody>
-                                                                      {courses.map((course: Course) => (
-                                                                                <TableRow
-                                                                                          key={course.id}
-                                                                                          hover
-                                                                                          sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
-                                                                                          onClick={() => navigate(`/courses/${course.id}/edit`)}
-                                                                                >
-                                                                                          <TableCell>
-                                                                                                    <IconButton size="small" onClick={(e) => handleActionMenuOpen(e, course)}>
-                                                                                                              <MoreVertIcon fontSize="small" />
-                                                                                                    </IconButton>
-                                                                                          </TableCell>
-                                                                                          <TableCell>
-                                                                                                    <Chip
-                                                                                                              label={getLevelLabel(course.level)}
-                                                                                                              size="small"
-                                                                                                              color={course.level === 'beginner' ? 'info' : course.level === 'intermediate' ? 'warning' : 'error'}
-                                                                                                              variant="outlined"
-                                                                                                              sx={{ fontWeight: 600, fontSize: '0.75rem' }}
-                                                                                                    />
-                                                                                          </TableCell>
-                                                                                          <TableCell>
-                                                                                                    <Typography fontWeight={600} sx={{ fontSize: '0.95rem' }}>
-                                                                                                              {isRTL ? (course.title_ar || course.title_en) : (course.title_en || course.title_ar)}
-                                                                                                    </Typography>
-                                                                                          </TableCell>
-                                                                                          <TableCell>
-                                                                                                    <Typography variant="body2" color="text.secondary">
-                                                                                                              {isRTL ? (course.specialization_name_ar || course.specialization_name_en || '-') : (course.specialization_name_en || course.specialization_name_ar || '-')}
-                                                                                                    </Typography>
-                                                                                          </TableCell>
-                                                                                          <TableCell>
-                                                                                                    <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                                                                                                              {formatDuration((course as any).total_duration_seconds || 0)}
-                                                                                                    </Typography>
-                                                                                          </TableCell>
-                                                                                          <TableCell>
-                                                                                                    <Chip
-                                                                                                              label={course.is_published ? (isRTL ? 'منشورة' : 'Published') : (isRTL ? 'مسودة' : 'Draft')}
-                                                                                                              size="small"
-                                                                                                              color={course.is_published ? 'success' : 'warning'}
-                                                                                                              sx={{ fontWeight: 600, fontSize: '0.75rem' }}
-                                                                                                    />
-                                                                                          </TableCell>
-                                                                                          <TableCell>
-                                                                                                    <Typography variant="body2">
-                                                                                                              {course.trainer_name || '-'}
-                                                                                                    </Typography>
-                                                                                          </TableCell>
-                                                                                          <TableCell align="right">
-                                                                                                    <Typography variant="body2" fontWeight={700} color="primary">
-                                                                                                              {Number(course.price) > 0 ? `${Number(course.price).toLocaleString()} ${isRTL ? 'د.ع' : 'IQD'}` : (isRTL ? 'مجاني' : 'Free')}
-                                                                                                    </Typography>
-                                                                                          </TableCell>
-                                                                                </TableRow>
-                                                                      ))}
-                                                            </TableBody>
-                                                  </Table>
-                                        </TableContainer>
-                              )}
-                    </>
-          );
+    // Render Course Table
+    const renderCourseTable = (courses: Course[], loading: boolean, emptyMessage: string) => (
+        <>
+            {loading && <CircularProgress />}
+            {!loading && courses.length === 0 && (
+                <Alert severity="info" sx={{ borderRadius: 2 }}>{emptyMessage}</Alert>
+            )}
+            {!loading && courses.length > 0 && (
+                <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.04) }}>
+                                <TableCell sx={{ fontWeight: 700, width: 56 }}>#</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المستوى' : 'Level'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'عنوان الدورة' : 'Course Title'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'الفئة' : 'Category'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدة' : 'Duration'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'الحالة' : 'Status'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدرب' : 'Trainer'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'السعر' : 'Price'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700, width: 56 }}>{isRTL ? 'الإجراءات' : 'Actions'}</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {courses.map((course: Course, index: number) => (
+                                <TableRow
+                                    key={course.id}
+                                    hover
+                                    sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
+                                    onClick={() => navigate(`/courses/${course.id}/edit`)}
+                                >
+                                    <TableCell>
+                                        <Typography variant="body2" fontWeight={600} color="text.secondary">
+                                            {index + 1}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={getLevelLabel(course.level)}
+                                            size="small"
+                                            color={course.level === 'beginner' ? 'info' : course.level === 'intermediate' ? 'warning' : 'error'}
+                                            variant="outlined"
+                                            sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography fontWeight={600} sx={{ fontSize: '0.95rem' }}>
+                                            {isRTL ? (course.title_ar || course.title_en) : (course.title_en || course.title_ar)}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="body2" color="text.secondary">
+                                            {isRTL ? (course.specialization_name_ar || course.specialization_name_en || '-') : (course.specialization_name_en || course.specialization_name_ar || '-')}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                                            {formatDuration((course as any).total_duration_seconds || 0)}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Chip
+                                            label={course.is_published ? (isRTL ? 'منشورة' : 'Published') : (isRTL ? 'مسودة' : 'Draft')}
+                                            size="small"
+                                            color={course.is_published ? 'success' : 'warning'}
+                                            sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="body2">
+                                            {course.trainer_name || '-'}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Typography variant="body2" fontWeight={700} color="primary">
+                                            {Number(course.price) > 0 ? `${Number(course.price).toLocaleString()} ${isRTL ? 'د.ع' : 'IQD'}` : (isRTL ? 'مجاني' : 'Free')}
+                                        </Typography>
+                                    </TableCell>
+                                    <TableCell sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                        <IconButton size="small" onClick={(e) => handleActionMenuOpen(e, course)}>
+                                            <MoreVertIcon fontSize="small" />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
+        </>
+    );
 
-          // Render Workshop Table
-          const renderWorkshopTable = (workshops: Workshop[], loading: boolean, emptyMessage: string) => (
-                    <>
-                              {loading && <CircularProgress />}
-                              {!loading && workshops.length === 0 && (
-                                        <Alert severity="info" sx={{ borderRadius: 2 }}>{emptyMessage}</Alert>
-                              )}
-                              {!loading && workshops.length > 0 && (
-                                        <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
-                                                  <Table>
-                                                            <TableHead>
-                                                                      <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.04) }}>
-                                                                                <TableCell sx={{ fontWeight: 700, width: 56 }}></TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'عنوان الورشة' : 'Workshop Title'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'التاريخ' : 'Date'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدة' : 'Duration'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المقاعد' : 'Seats'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'الحالة' : 'Status'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدرب' : 'Trainer'}</TableCell>
-                                                                                <TableCell sx={{ fontWeight: 700 }} align="right">{isRTL ? 'السعر' : 'Price'}</TableCell>
-                                                                      </TableRow>
-                                                            </TableHead>
-                                                            <TableBody>
-                                                                      {workshops.map((ws: Workshop) => {
-                                                                                const status = getStatusLabel(ws.status);
-                                                                                return (
-                                                                                          <TableRow
-                                                                                                    key={ws.id}
-                                                                                                    hover
-                                                                                                    sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
-                                                                                                    onClick={() => navigate(`/workshops/${ws.id}/edit`)}
-                                                                                          >
-                                                                                                    <TableCell>
-                                                                                                              <IconButton size="small" onClick={(e) => handleWorkshopMenuOpen(e, ws)}>
-                                                                                                                        <MoreVertIcon fontSize="small" />
-                                                                                                              </IconButton>
-                                                                                                    </TableCell>
-                                                                                                    <TableCell>
-                                                                                                              <Typography fontWeight={600} sx={{ fontSize: '0.95rem' }}>
-                                                                                                                        {isRTL ? (ws.title_ar || ws.title_en) : (ws.title_en || ws.title_ar)}
-                                                                                                              </Typography>
-                                                                                                    </TableCell>
-                                                                                                    <TableCell>
-                                                                                                              <Typography variant="body2" color="text.secondary">
-                                                                                                                        {ws.start_date ? dayjs(ws.start_date).format('YYYY-MM-DD') : '-'}
-                                                                                                              </Typography>
-                                                                                                    </TableCell>
-                                                                                                    <TableCell>
-                                                                                                              <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                                                                                                                        {ws.duration_hours ? `${ws.duration_hours}${isRTL ? 'س' : 'h'}` : '-'}
-                                                                                                              </Typography>
-                                                                                                    </TableCell>
-                                                                                                    <TableCell>
-                                                                                                              <Typography variant="body2" color="text.secondary">
-                                                                                                                        {ws.total_seats || '-'}
-                                                                                                              </Typography>
-                                                                                                    </TableCell>
-                                                                                                    <TableCell>
-                                                                                                              <Chip
-                                                                                                                        label={status.label}
-                                                                                                                        size="small"
-                                                                                                                        color={status.color}
-                                                                                                                        sx={{ fontWeight: 600, fontSize: '0.75rem' }}
-                                                                                                              />
-                                                                                                    </TableCell>
-                                                                                                    <TableCell>
-                                                                                                              <Typography variant="body2">
-                                                                                                                        {ws.trainer_name || '-'}
-                                                                                                              </Typography>
-                                                                                                    </TableCell>
-                                                                                                    <TableCell align="right">
-                                                                                                              <Typography variant="body2" fontWeight={700} color="primary">
-                                                                                                                        {Number(ws.price) > 0 ? `${Number(ws.price).toLocaleString()} ${isRTL ? 'د.ع' : 'IQD'}` : (isRTL ? 'مجاني' : 'Free')}
-                                                                                                              </Typography>
-                                                                                                    </TableCell>
-                                                                                          </TableRow>
-                                                                                );
-                                                                      })}
-                                                            </TableBody>
-                                                  </Table>
-                                        </TableContainer>
-                              )}
-                    </>
-          );
+    // Render Workshop Table
+    const renderWorkshopTable = (workshops: Workshop[], loading: boolean, emptyMessage: string) => (
+        <>
+            {loading && <CircularProgress />}
+            {!loading && workshops.length === 0 && (
+                <Alert severity="info" sx={{ borderRadius: 2 }}>{emptyMessage}</Alert>
+            )}
+            {!loading && workshops.length > 0 && (
+                <TableContainer component={Paper} sx={{ borderRadius: 1, boxShadow: 'none', border: `1px solid ${theme.palette.divider}` }}>
+                    <Table>
+                        <TableHead>
+                            <TableRow sx={{ bgcolor: alpha(theme.palette.primary.main, 0.04) }}>
+                                <TableCell sx={{ fontWeight: 700, width: 56 }}>#</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'عنوان الورشة' : 'Workshop Title'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'التاريخ' : 'Date'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدة' : 'Duration'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المقاعد' : 'Seats'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'الحالة' : 'Status'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'المدرب' : 'Trainer'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700 }}>{isRTL ? 'السعر' : 'Price'}</TableCell>
+                                <TableCell sx={{ fontWeight: 700, width: 56 }}>{isRTL ? 'الإجراءات' : 'Actions'}</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {workshops.map((ws: Workshop, index: number) => {
+                                const status = getStatusLabel(ws.status);
+                                return (
+                                    <TableRow
+                                        key={ws.id}
+                                        hover
+                                        sx={{ cursor: 'pointer', '&:last-child td, &:last-child th': { border: 0 } }}
+                                        onClick={() => navigate(`/workshops/${ws.id}/edit`)}
+                                    >
+                                        <TableCell>
+                                            <Typography variant="body2" fontWeight={600} color="text.secondary">
+                                                {index + 1}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography fontWeight={600} sx={{ fontSize: '0.95rem' }}>
+                                                {isRTL ? (ws.title_ar || ws.title_en) : (ws.title_en || ws.title_ar)}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {ws.start_date ? dayjs(ws.start_date).format('YYYY-MM-DD') : '-'}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary" fontWeight={500}>
+                                                {ws.duration_hours ? `${ws.duration_hours}${isRTL ? 'س' : 'h'}` : '-'}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" color="text.secondary">
+                                                {ws.total_seats || '-'}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Chip
+                                                label={status.label}
+                                                size="small"
+                                                color={status.color}
+                                                sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2">
+                                                {ws.trainer_name || '-'}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Typography variant="body2" fontWeight={700} color="primary">
+                                                {Number(ws.price) > 0 ? `${Number(ws.price).toLocaleString()} ${isRTL ? 'د.ع' : 'IQD'}` : (isRTL ? 'مجاني' : 'Free')}
+                                            </Typography>
+                                        </TableCell>
+                                        <TableCell sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                            <IconButton size="small" onClick={(e) => handleWorkshopMenuOpen(e, ws)}>
+                                                <MoreVertIcon fontSize="small" />
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            )}
+        </>
+    );
 
-          const pageTitle = entityType === 'courses'
-                    ? (isRTL ? 'إدارة الدورات' : 'Manage Courses')
-                    : (isRTL ? 'إدارة الورش' : 'Manage Workshops');
+    const pageTitle = entityType === 'courses'
+        ? (isRTL ? 'إدارة الدورات' : 'Manage Courses')
+        : (isRTL ? 'إدارة الورش' : 'Manage Workshops');
 
-          const pageSubtitle = entityType === 'courses'
-                    ? (isRTL ? 'أضف دورات جديدة وقم بإدارة المحتوى التدريبي الخاص بك' : 'Add new courses and manage your training content')
-                    : (isRTL ? 'أضف ورش جديدة وقم بإدارة الورش التدريبية الخاصة بك' : 'Add new workshops and manage your training workshops');
+    const pageSubtitle = entityType === 'courses'
+        ? (isRTL ? 'أضف دورات جديدة وقم بإدارة المحتوى التدريبي الخاص بك' : 'Add new courses and manage your training content')
+        : (isRTL ? 'أضف ورش جديدة وقم بإدارة الورش التدريبية الخاصة بك' : 'Add new workshops and manage your training workshops');
 
-          return (
-                    <Container maxWidth="xl" sx={{ py: 4 }}>
-                              {/* ========== HEADER ========== */}
-                              {isAdmin ? (
-                                        <Box sx={{ mb: 4 }}>
-                                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                                            <Typography variant="h4" fontWeight={700}>
-                                                                      {pageTitle}
-                                                            </Typography>
-                                                            {/* New Button */}
-                                                            <Button
-                                                                      variant="contained"
-                                                                      startIcon={<AddIcon />}
-                                                                      onClick={() => {
-                                                                                if (entityType === 'courses') {
-                                                                                          setCourseForm({});
-                                                                                          setCourseDialog(true);
-                                                                                } else {
-                                                                                          setWorkshopFormOpen(true);
-                                                                                }
-                                                                      }}
-                                                                      sx={{ borderRadius: 2 }}
-                                                            >
-                                                                      {entityType === 'courses'
-                                                                                ? (isRTL ? 'دورة جديدة' : 'New Course')
-                                                                                : (isRTL ? 'ورشة جديدة' : 'New Workshop')}
-                                                            </Button>
-                                                  </Box>
-                                                  <Tabs value={entityType} onChange={(_, v) => handleEntitySwitch(v as EntityType)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                                            <Tab value="courses" label={isRTL ? 'الدورات' : 'Courses'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
-                                                            <Tab value="workshops" label={isRTL ? 'الورش' : 'Workshops'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
-                                                  </Tabs>
-                                        </Box>
-                              ) : (
-                                        <Card sx={{ mb: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: 1 }}>
-                                                  <CardContent sx={{ p: { xs: 3, md: 4 }, pb: { xs: 0, md: 0 } }}>
-                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-                                                                      <Box>
-                                                                                <Typography variant="h4" fontWeight={700} gutterBottom>
-                                                                                          {pageTitle}
-                                                                                </Typography>
-                                                                                <Typography variant="body1" color="text.secondary">
-                                                                                          {pageSubtitle}
-                                                                                </Typography>
-                                                                      </Box>
-                                                                      <Button
-                                                                                variant="contained"
-                                                                                startIcon={<AddIcon />}
-                                                                                onClick={() => {
-                                                                                          if (entityType === 'courses') {
-                                                                                                    setCourseForm({});
-                                                                                                    setCourseDialog(true);
-                                                                                          } else {
-                                                                                                    setWorkshopFormOpen(true);
-                                                                                          }
-                                                                                }}
-                                                                                sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 600 }}
-                                                                      >
-                                                                                {entityType === 'courses'
-                                                                                          ? (isRTL ? 'دورة جديدة' : 'New Course')
-                                                                                          : (isRTL ? 'ورشة جديدة' : 'New Workshop')}
-                                                                      </Button>
-                                                            </Box>
-                                                            <Tabs value={entityType} onChange={(_, v) => handleEntitySwitch(v as EntityType)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                                                                      <Tab value="courses" label={isRTL ? 'الدورات' : 'Courses'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
-                                                                      <Tab value="workshops" label={isRTL ? 'الورش' : 'Workshops'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
-                                                            </Tabs>
-                                                  </CardContent>
-                                        </Card>
-                              )}
+    return (
+        <Box>
+            {/* ========== HEADER ========== */}
+            {isAdmin ? (
+                <Box sx={{ mb: 4 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h4" fontWeight={700}>
+                            {pageTitle}
+                        </Typography>
+                        {/* New Button */}
+                        <Button
+                            variant="contained"
+                            startIcon={<AddIcon />}
+                            onClick={() => {
+                                if (entityType === 'courses') {
+                                    setCourseForm({});
+                                    setCourseDialog(true);
+                                } else {
+                                    setWorkshopFormOpen(true);
+                                }
+                            }}
+                            sx={{ borderRadius: 2 }}
+                        >
+                            {entityType === 'courses'
+                                ? (isRTL ? 'دورة جديدة' : 'New Course')
+                                : (isRTL ? 'ورشة جديدة' : 'New Workshop')}
+                        </Button>
+                    </Box>
+                    <Tabs value={entityType} onChange={(_, v) => handleEntitySwitch(v as EntityType)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                        <Tab value="courses" label={isRTL ? 'الدورات' : 'Courses'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                        <Tab value="workshops" label={isRTL ? 'الورش' : 'Workshops'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                    </Tabs>
+                </Box>
+            ) : (
+                <Card sx={{ mb: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', borderRadius: 1 }}>
+                    <CardContent sx={{ p: { xs: 3, md: 4 }, pb: { xs: 0, md: 0 } }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                            <Box>
+                                <Typography variant="h4" fontWeight={700} gutterBottom>
+                                    {pageTitle}
+                                </Typography>
+                                <Typography variant="body1" color="text.secondary">
+                                    {pageSubtitle}
+                                </Typography>
+                            </Box>
+                            <Button
+                                variant="contained"
+                                startIcon={<AddIcon />}
+                                onClick={() => {
+                                    if (entityType === 'courses') {
+                                        setCourseForm({});
+                                        setCourseDialog(true);
+                                    } else {
+                                        setWorkshopFormOpen(true);
+                                    }
+                                }}
+                                sx={{ borderRadius: 2, px: 3, py: 1.2, fontWeight: 600 }}
+                            >
+                                {entityType === 'courses'
+                                    ? (isRTL ? 'دورة جديدة' : 'New Course')
+                                    : (isRTL ? 'ورشة جديدة' : 'New Workshop')}
+                            </Button>
+                        </Box>
+                        <Tabs value={entityType} onChange={(_, v) => handleEntitySwitch(v as EntityType)} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <Tab value="courses" label={isRTL ? 'الدورات' : 'Courses'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                            <Tab value="workshops" label={isRTL ? 'الورش' : 'Workshops'} sx={{ fontWeight: 600, fontSize: '1.05rem', minHeight: '48px', px: 3 }} />
+                        </Tabs>
+                    </CardContent>
+                </Card>
+            )}
 
-                              {/* ========== COURSES CONTENT ========== */}
-                              {entityType === 'courses' && (
-                                        <>
-                                                  {!isAdmin && renderCourseTable(
-                                                            myCourses || [],
-                                                            loadingMy,
-                                                            isRTL ? 'لم تقم بإنشاء أي دورات بعد. اضغط على "دورة جديدة" للبدء!' : 'You haven\'t created any courses yet. Click "New Course" to start!'
-                                                  )}
-                                                  {isAdmin && renderCourseTable(
-                                                            allCoursesData?.data || [],
-                                                            loadingAll,
-                                                            isRTL ? 'لا توجد دورات.' : 'No courses found.'
-                                                  )}
-                                        </>
-                              )}
+            {/* ========== COURSES CONTENT ========== */}
+            {entityType === 'courses' && (
+                <>
+                    {!isAdmin && renderCourseTable(
+                        myCourses || [],
+                        loadingMy,
+                        isRTL ? 'لم تقم بإنشاء أي دورات بعد. اضغط على "دورة جديدة" للبدء!' : 'You haven\'t created any courses yet. Click "New Course" to start!'
+                    )}
+                    {isAdmin && renderCourseTable(
+                        allCoursesData?.data || [],
+                        loadingAll,
+                        isRTL ? 'لا توجد دورات.' : 'No courses found.'
+                    )}
+                </>
+            )}
 
-                              {/* ========== WORKSHOPS CONTENT ========== */}
-                              {entityType === 'workshops' && (
-                                        <>
-                                                  {!isAdmin && renderWorkshopTable(
-                                                            myWorkshops,
-                                                            loadingMyWorkshops,
-                                                            isRTL ? 'لم تقم بإنشاء أي ورش بعد. اضغط على "ورشة جديدة" للبدء!' : 'You haven\'t created any workshops yet. Click "New Workshop" to start!'
-                                                  )}
-                                                  {isAdmin && renderWorkshopTable(
-                                                            allWorkshops,
-                                                            loadingAllWorkshops,
-                                                            isRTL ? 'لا توجد ورش.' : 'No workshops found.'
-                                                  )}
-                                        </>
-                              )}
+            {/* ========== WORKSHOPS CONTENT ========== */}
+            {entityType === 'workshops' && (
+                <>
+                    {!isAdmin && renderWorkshopTable(
+                        myWorkshops,
+                        loadingMyWorkshops,
+                        isRTL ? 'لم تقم بإنشاء أي ورش بعد. اضغط على "ورشة جديدة" للبدء!' : 'You haven\'t created any workshops yet. Click "New Workshop" to start!'
+                    )}
+                    {isAdmin && renderWorkshopTable(
+                        allWorkshops,
+                        loadingAllWorkshops,
+                        isRTL ? 'لا توجد ورش.' : 'No workshops found.'
+                    )}
+                </>
+            )}
 
-                              {/* ========== COURSE ACTIONS MENU ========== */}
-                              <Menu
-                                        anchorEl={actionMenuAnchor}
-                                        open={Boolean(actionMenuAnchor)}
-                                        onClose={handleActionMenuClose}
-                                        PaperProps={{ sx: { borderRadius: 2, minWidth: 180, boxShadow: 3 } }}
-                              >
-                                        <MenuItem onClick={() => { if (actionMenuCourse) navigate(`/courses/${actionMenuCourse.id}/edit`); handleActionMenuClose(); }}>
-                                                  <BuildIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'بناء المنهج' : 'Build Curriculum'}
-                                        </MenuItem>
-                                        <MenuItem onClick={() => { if (actionMenuCourse) navigate(`/courses/${actionMenuCourse.id}`); handleActionMenuClose(); }}>
-                                                  <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'عرض الدورة' : 'View Course'}
-                                        </MenuItem>
-                                        <MenuItem onClick={() => { if (actionMenuCourse) handleTogglePublish(actionMenuCourse); handleActionMenuClose(); }}>
-                                                  <PublishIcon fontSize="small" sx={{ mr: 1.5 }} /> {actionMenuCourse?.is_published ? (isRTL ? 'إلغاء النشر' : 'Unpublish') : (isRTL ? 'نشر' : 'Publish')}
-                                        </MenuItem>
-                                        <MenuItem onClick={() => {
-                                                  if (actionMenuCourse && confirm(isRTL ? 'هل أنت متأكد من حذف هذه الدورة؟' : 'Delete this course?')) {
-                                                            deleteCourse.mutate(actionMenuCourse.id);
-                                                  }
-                                                  handleActionMenuClose();
-                                        }} sx={{ color: 'error.main' }}>
-                                                  <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'حذف' : 'Delete'}
-                                        </MenuItem>
-                              </Menu>
+            {/* ========== COURSE ACTIONS MENU ========== */}
+            <Menu
+                anchorEl={actionMenuAnchor}
+                open={Boolean(actionMenuAnchor)}
+                onClose={handleActionMenuClose}
+                PaperProps={{ sx: { borderRadius: 2, minWidth: 180, boxShadow: 3 } }}
+            >
+                <MenuItem onClick={() => { if (actionMenuCourse) navigate(`/courses/${actionMenuCourse.id}/edit`); handleActionMenuClose(); }}>
+                    <BuildIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'بناء المنهج' : 'Build Curriculum'}
+                </MenuItem>
+                <MenuItem onClick={() => { if (actionMenuCourse) navigate(`/courses/${actionMenuCourse.id}`); handleActionMenuClose(); }}>
+                    <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'عرض الدورة' : 'View Course'}
+                </MenuItem>
+                <MenuItem onClick={() => { if (actionMenuCourse) handleTogglePublish(actionMenuCourse); handleActionMenuClose(); }}>
+                    <PublishIcon fontSize="small" sx={{ mr: 1.5 }} /> {actionMenuCourse?.is_published ? (isRTL ? 'إلغاء النشر' : 'Unpublish') : (isRTL ? 'نشر' : 'Publish')}
+                </MenuItem>
+                <MenuItem onClick={() => {
+                    if (actionMenuCourse && confirm(isRTL ? 'هل أنت متأكد من حذف هذه الدورة؟' : 'Delete this course?')) {
+                        deleteCourse.mutate(actionMenuCourse.id);
+                    }
+                    handleActionMenuClose();
+                }} sx={{ color: 'error.main' }}>
+                    <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'حذف' : 'Delete'}
+                </MenuItem>
+            </Menu>
 
-                              {/* ========== WORKSHOP ACTIONS MENU ========== */}
-                              <Menu
-                                        anchorEl={workshopActionMenuAnchor}
-                                        open={Boolean(workshopActionMenuAnchor)}
-                                        onClose={handleWorkshopMenuClose}
-                                        PaperProps={{ sx: { borderRadius: 2, minWidth: 180, boxShadow: 3 } }}
-                              >
-                                        <MenuItem onClick={() => { if (workshopActionTarget) navigate(`/workshops/${workshopActionTarget.id}/edit`); handleWorkshopMenuClose(); }}>
-                                                  <BuildIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'تعديل الورشة' : 'Edit Workshop'}
-                                        </MenuItem>
-                                        <MenuItem onClick={() => { if (workshopActionTarget) navigate(`/workshops/${workshopActionTarget.id}`); handleWorkshopMenuClose(); }}>
-                                                  <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'عرض الورشة' : 'View Workshop'}
-                                        </MenuItem>
-                                        <MenuItem onClick={() => {
-                                                  if (workshopActionTarget && confirm(isRTL ? 'هل أنت متأكد من حذف هذه الورشة؟' : 'Delete this workshop?')) {
-                                                            deleteWorkshop.mutate(workshopActionTarget.id);
-                                                  }
-                                                  handleWorkshopMenuClose();
-                                        }} sx={{ color: 'error.main' }}>
-                                                  <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'حذف' : 'Delete'}
-                                        </MenuItem>
-                              </Menu>
+            {/* ========== WORKSHOP ACTIONS MENU ========== */}
+            <Menu
+                anchorEl={workshopActionMenuAnchor}
+                open={Boolean(workshopActionMenuAnchor)}
+                onClose={handleWorkshopMenuClose}
+                PaperProps={{ sx: { borderRadius: 2, minWidth: 180, boxShadow: 3 } }}
+            >
+                <MenuItem onClick={() => { if (workshopActionTarget) navigate(`/workshops/${workshopActionTarget.id}/edit`); handleWorkshopMenuClose(); }}>
+                    <BuildIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'تعديل الورشة' : 'Edit Workshop'}
+                </MenuItem>
+                <MenuItem onClick={() => { if (workshopActionTarget) navigate(`/workshops/${workshopActionTarget.id}`); handleWorkshopMenuClose(); }}>
+                    <VisibilityIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'عرض الورشة' : 'View Workshop'}
+                </MenuItem>
+                <MenuItem onClick={() => {
+                    if (workshopActionTarget && confirm(isRTL ? 'هل أنت متأكد من حذف هذه الورشة؟' : 'Delete this workshop?')) {
+                        deleteWorkshop.mutate(workshopActionTarget.id);
+                    }
+                    handleWorkshopMenuClose();
+                }} sx={{ color: 'error.main' }}>
+                    <DeleteIcon fontSize="small" sx={{ mr: 1.5 }} /> {isRTL ? 'حذف' : 'Delete'}
+                </MenuItem>
+            </Menu>
 
-                              {/* ========== CREATE COURSE DIALOG ========== */}
-                              <Dialog open={courseDialog} onClose={() => setCourseDialog(false)} maxWidth="sm" fullWidth>
-                                        <DialogTitle fontWeight={700}>إنشاء دورة جديدة / Create New Course</DialogTitle>
-                                        <DialogContent>
-                                                  <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
-                                                            بعد الإنشاء سيتم نقلك إلى صفحة بناء المنهج لإضافة الأقسام والدروس.
-                                                            <br />
-                                                            After creating, you'll be redirected to the Course Builder to add sections and lessons.
-                                                  </Alert>
-                                                  <Stack spacing={2} sx={{ mt: 1 }}>
-                                                            <TextField label="عنوان بالعربية" fullWidth required
-                                                                      onChange={e => setCourseForm(p => ({ ...p, title_ar: e.target.value }))} />
-                                                            <TextField label="Title in English" fullWidth required
-                                                                      onChange={e => setCourseForm(p => ({ ...p, title_en: e.target.value }))} />
-                                                            <TextField label="وصف بالعربية" fullWidth multiline rows={3}
-                                                                      onChange={e => setCourseForm(p => ({ ...p, description_ar: e.target.value }))} />
-                                                            <TextField label="Description in English" fullWidth multiline rows={3}
-                                                                      onChange={e => setCourseForm(p => ({ ...p, description_en: e.target.value }))} />
-                                                            <TextField label="السعر (IQD)" type="number" fullWidth
-                                                                      onChange={e => setCourseForm(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} />
-                                                            <FormControl fullWidth>
-                                                                      <InputLabel>المستوى / Level</InputLabel>
-                                                                      <Select
-                                                                                value={(courseForm.level as string) || 'beginner'}
-                                                                                onChange={e => setCourseForm(p => ({ ...p, level: e.target.value as string }))}
-                                                                                label="المستوى / Level"
-                                                                      >
-                                                                                <MenuItem value="beginner">مبتدئ / Beginner</MenuItem>
-                                                                                <MenuItem value="intermediate">متوسط / Intermediate</MenuItem>
-                                                                                <MenuItem value="advanced">متقدم / Advanced</MenuItem>
-                                                                      </Select>
-                                                            </FormControl>
-                                                            <FormControl fullWidth>
-                                                                      <InputLabel>الفئة / Category</InputLabel>
-                                                                      <Select
-                                                                                value={(courseForm.specialization_id as string) || ''}
-                                                                                onChange={e => setCourseForm(p => ({ ...p, specialization_id: e.target.value as string }))}
-                                                                                label="الفئة / Category"
-                                                                      >
-                                                                                <MenuItem value="">بدون تخصص / None</MenuItem>
-                                                                                {((specializations as any)?.data || specializations || []).map((s: any) => (
-                                                                                          <MenuItem key={s.id} value={s.id}>{s.name_ar} / {s.name_en}</MenuItem>
-                                                                                ))}
-                                                                      </Select>
-                                                            </FormControl>
-                                                            <Box>
-                                                                      <Button variant="outlined" component="label" startIcon={<CloudUploadIcon />}>
-                                                                                رفع صورة الغلاف / Upload Cover
-                                                                                <input type="file" accept="image/*" hidden onChange={handleMediaUpload} />
-                                                                      </Button>
-                                                                      {uploadMedia.isPending && <CircularProgress size={20} sx={{ ml: 1 }} />}
-                                                                      {courseForm.cover_image && (
-                                                                                <Typography variant="caption" sx={{ ml: 1 }}>✅ تم الرفع</Typography>
-                                                                      )}
-                                                            </Box>
-                                                  </Stack>
-                                        </DialogContent>
-                                        <DialogActions sx={{ px: 3, pb: 3 }}>
-                                                  <Button onClick={() => setCourseDialog(false)}>إلغاء</Button>
-                                                  <Button variant="contained" onClick={handleCreateCourse} disabled={createCourse.isPending}>
-                                                            {createCourse.isPending ? <CircularProgress size={20} /> : 'إنشاء والبدء ببناء المنهج / Create & Build'}
-                                                  </Button>
-                                        </DialogActions>
-                              </Dialog>
+            {/* ========== CREATE COURSE DIALOG ========== */}
+            <Dialog open={courseDialog} onClose={() => setCourseDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle fontWeight={700}>إنشاء دورة جديدة / Create New Course</DialogTitle>
+                <DialogContent>
+                    <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+                        بعد الإنشاء سيتم نقلك إلى صفحة بناء المنهج لإضافة الأقسام والدروس.
+                        <br />
+                        After creating, you'll be redirected to the Course Builder to add sections and lessons.
+                    </Alert>
+                    <Stack spacing={2} sx={{ mt: 1 }}>
+                        <TextField label="عنوان بالعربية" fullWidth required
+                            onChange={e => setCourseForm(p => ({ ...p, title_ar: e.target.value }))} />
+                        <TextField label="Title in English" fullWidth required
+                            onChange={e => setCourseForm(p => ({ ...p, title_en: e.target.value }))} />
+                        <TextField label="وصف بالعربية" fullWidth multiline rows={3}
+                            onChange={e => setCourseForm(p => ({ ...p, description_ar: e.target.value }))} />
+                        <TextField label="Description in English" fullWidth multiline rows={3}
+                            onChange={e => setCourseForm(p => ({ ...p, description_en: e.target.value }))} />
+                        <TextField label="السعر (IQD)" type="number" fullWidth
+                            onChange={e => setCourseForm(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} />
+                        <FormControl fullWidth>
+                            <InputLabel>المستوى / Level</InputLabel>
+                            <Select
+                                value={(courseForm.level as string) || 'beginner'}
+                                onChange={e => setCourseForm(p => ({ ...p, level: e.target.value as string }))}
+                                label="المستوى / Level"
+                            >
+                                <MenuItem value="beginner">مبتدئ / Beginner</MenuItem>
+                                <MenuItem value="intermediate">متوسط / Intermediate</MenuItem>
+                                <MenuItem value="advanced">متقدم / Advanced</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl fullWidth>
+                            <InputLabel>الفئة / Category</InputLabel>
+                            <Select
+                                value={(courseForm.specialization_id as string) || ''}
+                                onChange={e => setCourseForm(p => ({ ...p, specialization_id: e.target.value as string }))}
+                                label="الفئة / Category"
+                            >
+                                <MenuItem value="">بدون تخصص / None</MenuItem>
+                                {((specializations as any)?.data || specializations || []).map((s: any) => (
+                                    <MenuItem key={s.id} value={s.id}>{s.name_ar} / {s.name_en}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <Box>
+                            <Button variant="outlined" component="label" startIcon={<CloudUploadIcon />}>
+                                رفع صورة الغلاف / Upload Cover
+                                <input type="file" accept="image/*" hidden onChange={handleMediaUpload} />
+                            </Button>
+                            {uploadMedia.isPending && <CircularProgress size={20} sx={{ ml: 1 }} />}
+                            {courseForm.cover_image && (
+                                <Typography variant="caption" sx={{ ml: 1 }}>✅ تم الرفع</Typography>
+                            )}
+                        </Box>
+                    </Stack>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3 }}>
+                    <Button onClick={() => setCourseDialog(false)}>إلغاء</Button>
+                    <Button variant="contained" onClick={handleCreateCourse} disabled={createCourse.isPending}>
+                        {createCourse.isPending ? <CircularProgress size={20} /> : 'إنشاء والبدء ببناء المنهج / Create & Build'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
 
-                              {/* ========== CREATE WORKSHOP DIALOG ========== */}
-                              <WorkshopFormDialog
-                                        open={workshopFormOpen}
-                                        onClose={() => setWorkshopFormOpen(false)}
-                                        onCreated={(workshopId) => navigate(`/workshops/${workshopId}/edit`)}
-                              />
-                    </Container>
-          );
+            {/* ========== CREATE WORKSHOP DIALOG ========== */}
+            <WorkshopFormDialog
+                open={workshopFormOpen}
+                onClose={() => setWorkshopFormOpen(false)}
+                onCreated={(workshopId) => navigate(`/workshops/${workshopId}/edit`)}
+            />
+        </Box>
+    );
 };
 
 export default CourseManagePage;

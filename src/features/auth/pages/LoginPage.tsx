@@ -8,9 +8,11 @@ import {
     Box, Card, CardContent, Typography, TextField, Button,
     InputAdornment, IconButton, Link, Alert, useTheme, alpha,
 } from '@mui/material';
-import { Visibility, VisibilityOff, Email, Lock, Login as LoginIcon } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
+import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../../store/authStore';
+import { useUIStore } from '../../../store/uiStore';
 import authService from '../../../api/services/auth.service';
 import { getDashboardPath } from '../../../components/guards/RouteGuards';
 import { UserRole } from '../../../types';
@@ -28,6 +30,7 @@ export default function LoginPage() {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { login } = useAuthStore();
+    const { locale } = useUIStore();
     const [showPassword, setShowPassword] = useState(false);
     const [serverError, setServerError] = useState('');
 
@@ -148,12 +151,56 @@ export default function LoginPage() {
                             fullWidth type="submit" variant="contained" size="large"
                             disabled={isSubmitting}
                             sx={{
+                                borderRadius: 1,
                                 py: 1.5, fontSize: '1rem',
-                                background: `linear-gradient(135deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+                                background: theme.palette.primary.main,
                             }}
                         >
                             {isSubmitting ? t('common.loading') : t('auth.login')}
                         </Button>
+
+                        <Box sx={{ mt: 3, mb: 2, display: 'flex', alignItems: 'center' }}>
+                            <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+                            <Typography variant="body2" sx={{ mx: 2, color: 'text.secondary' }}>
+                                {locale === 'ar' ? 'أو' : 'OR'}
+                            </Typography>
+                            <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                            <GoogleLogin
+                                onSuccess={async (credentialResponse) => {
+                                    if (!credentialResponse.credential) return;
+                                    try {
+                                        setServerError('');
+                                        const result = await authService.oauthLogin(credentialResponse.credential);
+                                        if (result.requires_registration) {
+                                            navigate('/register', {
+                                                state: {
+                                                    oauthToken: credentialResponse.credential,
+                                                    email: result.email,
+                                                    name: result.name
+                                                }
+                                            });
+                                        } else {
+                                            login(result.user, result.accessToken, result.refreshToken);
+                                            toast.success(t('auth.loginSuccess'));
+                                            if (result.user.role === UserRole.SUPER_ADMIN) {
+                                                navigate(getDashboardPath(result.user.role));
+                                            } else {
+                                                navigate('/home');
+                                            }
+                                        }
+                                    } catch (error) {
+                                        const axiosError = error as AxiosError<{ message?: string }>;
+                                        setServerError(axiosError.response?.data?.message || (locale === 'ar' ? 'فشل الدخول بواسطة جوجل' : 'Google Login Failed'));
+                                    }
+                                }}
+                                onError={() => {
+                                    setServerError(locale === 'ar' ? 'فشل الدخول بواسطة جوجل' : 'Google Login Failed');
+                                }}
+                            />
+                        </Box>
                     </Box>
 
                     <Typography variant="body2" textAlign="center" sx={{ mt: 3 }}>

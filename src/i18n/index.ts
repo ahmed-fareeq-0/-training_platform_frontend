@@ -6,13 +6,13 @@ import en from './en.json';
 const savedLocale = localStorage.getItem('locale') || 'ar';
 
 i18n.use(initReactI18next).init({
-          resources: {
-                    ar: { translation: ar },
-                    en: { translation: en },
-          },
-          lng: savedLocale,
-          fallbackLng: 'ar',
-          interpolation: { escapeValue: false },
+    resources: {
+        ar: { translation: ar },
+        en: { translation: en },
+    },
+    lng: savedLocale,
+    fallbackLng: 'ar',
+    interpolation: { escapeValue: false },
 });
 
 export default i18n;

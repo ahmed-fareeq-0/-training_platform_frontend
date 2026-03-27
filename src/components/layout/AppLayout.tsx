@@ -37,7 +37,7 @@ export default function AppLayout() {
         }}
       >
         <Toolbar />
-        <Box sx={{ flexGrow: 1 }}>
+        <Box>
           <Outlet />
         </Box>
         {isHeaderNavRole && <Footer />}

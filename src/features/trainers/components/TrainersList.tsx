@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { 
-  Grid, Box, Typography, Card, CardContent, Avatar, Chip, 
-  Button, Skeleton, useTheme, Tooltip, Dialog, DialogTitle, 
-  DialogContent, DialogActions, IconButton, Divider, useMediaQuery 
+import {
+  Grid, Box, Typography, Card, CardContent, Avatar, Chip,
+  Button, Skeleton, useTheme, Tooltip, Dialog, DialogTitle,
+  DialogContent, DialogActions, IconButton, Divider, useMediaQuery
 } from '@mui/material';
 import { CheckCircle, Cancel, School, Visibility, Close, Email, Phone, Work, Category, AssignmentInd, BusinessCenter } from '@mui/icons-material';
 import { useUIStore } from '../../../store/uiStore';
@@ -19,7 +19,7 @@ export default function TrainersList({ trainers, isLoading }: TrainersListProps)
   const { locale } = useUIStore();
   const mutations = useTrainerMutations();
   const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-  
+
   const [selectedTrainer, setSelectedTrainer] = useState<Trainer | null>(null);
 
   if (isLoading) {
@@ -62,7 +62,7 @@ export default function TrainersList({ trainers, isLoading }: TrainersListProps)
                   <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                     <Typography fontWeight={600} sx={{ mb: 0, lineHeight: 1.2 }}>{trainer.user?.full_name || trainer.full_name}</Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5 }}>{(trainer.user?.email || (trainer as any).email) || 'N/A'}</Typography>
-                    
+
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       {trainer.trainer_type && (
                         <Chip
@@ -162,10 +162,10 @@ export default function TrainersList({ trainers, isLoading }: TrainersListProps)
       </Grid>
 
       {/* Trainer Details Dialog */}
-      <Dialog 
-        open={Boolean(selectedTrainer)} 
-        onClose={handleClose} 
-        maxWidth="md" 
+      <Dialog
+        open={Boolean(selectedTrainer)}
+        onClose={handleClose}
+        maxWidth="md"
         fullWidth
         fullScreen={fullScreen}
       >
@@ -245,14 +245,14 @@ export default function TrainersList({ trainers, isLoading }: TrainersListProps)
                         {selectedTrainer.experience_years ?? selectedTrainer.years_of_experience ?? '0'} {locale === 'ar' ? 'سنوات' : 'years'}
                       </Typography>
                     </Grid>
-                    
+
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <Typography variant="caption" color="text.secondary">
                         {locale === 'ar' ? 'التخصص / الفئة' : 'Specialization / Category'}
                       </Typography>
                       <Typography variant="body1" fontWeight={500}>
-                        {(selectedTrainer.specialization ? (locale === 'ar' ? selectedTrainer.specialization.name_ar : selectedTrainer.specialization.name_en) : null) || 
-                         ((selectedTrainer as any).specialization_name_ar ? (locale === 'ar' ? (selectedTrainer as any).specialization_name_ar : (selectedTrainer as any).specialization_name_en) : 'N/A')}
+                        {(selectedTrainer.specialization ? (locale === 'ar' ? selectedTrainer.specialization.name_ar : selectedTrainer.specialization.name_en) : null) ||
+                          ((selectedTrainer as any).specialization_name_ar ? (locale === 'ar' ? (selectedTrainer as any).specialization_name_ar : (selectedTrainer as any).specialization_name_en) : 'N/A')}
                       </Typography>
                     </Grid>
 
@@ -279,10 +279,10 @@ export default function TrainersList({ trainers, isLoading }: TrainersListProps)
                           </Typography>
                           <Typography variant="body1" fontWeight={500}>
                             {selectedTrainer.academic_title === 'lecturer' ? (locale === 'ar' ? 'مدرس' : 'Lecturer')
-                             : selectedTrainer.academic_title === 'assistant_professor' ? (locale === 'ar' ? 'أستاذ مساعد' : 'Assistant Professor')
-                             : selectedTrainer.academic_title === 'associate_professor' ? (locale === 'ar' ? 'أستاذ مشارك' : 'Associate Professor')
-                             : selectedTrainer.academic_title === 'professor' ? (locale === 'ar' ? 'أستاذ' : 'Professor')
-                             : (selectedTrainer.academic_title || 'N/A')}
+                              : selectedTrainer.academic_title === 'assistant_professor' ? (locale === 'ar' ? 'أستاذ مساعد' : 'Assistant Professor')
+                                : selectedTrainer.academic_title === 'associate_professor' ? (locale === 'ar' ? 'أستاذ مشارك' : 'Associate Professor')
+                                  : selectedTrainer.academic_title === 'professor' ? (locale === 'ar' ? 'أستاذ' : 'Professor')
+                                    : (selectedTrainer.academic_title || 'N/A')}
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
@@ -291,9 +291,9 @@ export default function TrainersList({ trainers, isLoading }: TrainersListProps)
                           </Typography>
                           <Typography variant="body1" fontWeight={500}>
                             {selectedTrainer.academic_degree === 'bachelor' ? (locale === 'ar' ? 'بكالوريوس' : 'Bachelor')
-                             : selectedTrainer.academic_degree === 'master' ? (locale === 'ar' ? 'ماجستير' : 'Master')
-                             : selectedTrainer.academic_degree === 'phd' ? (locale === 'ar' ? 'دكتوراه' : 'PhD')
-                             : (selectedTrainer.academic_degree || 'N/A')}
+                              : selectedTrainer.academic_degree === 'master' ? (locale === 'ar' ? 'ماجستير' : 'Master')
+                                : selectedTrainer.academic_degree === 'phd' ? (locale === 'ar' ? 'دكتوراه' : 'PhD')
+                                  : (selectedTrainer.academic_degree || 'N/A')}
                           </Typography>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
@@ -311,22 +311,22 @@ export default function TrainersList({ trainers, isLoading }: TrainersListProps)
                     {locale === 'ar' ? 'النبذة التعريفية (Bio)' : 'Biography'}
                   </Typography>
                   <Divider sx={{ mb: 2 }} />
-                  
+
                   <Box sx={{ bgcolor: 'action.hover', p: 2, borderRadius: 1, mb: 2 }}>
                     <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
                       {locale === 'ar' ? (selectedTrainer.bio_ar || selectedTrainer.bio || selectedTrainer.bio_en || 'لا توجد نبذة تعريفية') : (selectedTrainer.bio_en || selectedTrainer.bio || selectedTrainer.bio_ar || 'No biography provided')}
                     </Typography>
                   </Box>
-                  
+
                 </Grid>
               </Grid>
             </DialogContent>
-            
+
             <DialogActions sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
               <Button onClick={handleClose} color="inherit">
                 {locale === 'ar' ? 'إغلاق' : 'Close'}
               </Button>
-              
+
               {!selectedTrainer.is_approved && (
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Button
