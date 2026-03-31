@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { managerService } from '../../../api/services/manager.service';
 import { ManagerCreateInput, ManagerPermissionUpdateInput } from '../../../types';
 import toast from 'react-hot-toast';
+import { useUIStore } from '../../../store/uiStore';
 
 export const useManagers = (params?: { page?: number; limit?: number; search?: string }) => {
     return useQuery({
@@ -25,11 +26,11 @@ export const useCreateManager = () => {
     return useMutation({
         mutationFn: (data: ManagerCreateInput) => managerService.createManager(data),
         onSuccess: () => {
-            toast.success('تم إضافة المدير بنجاح / Manager created successfully');
+            toast.success(useUIStore.getState().locale === 'ar' ? 'تم إضافة المدير بنجاح' : 'Manager created successfully');
             queryClient.invalidateQueries({ queryKey: ['managers'] });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'فشل في إضافة المدير / Failed to create manager');
+            toast.error(error.response?.data?.message || (useUIStore.getState().locale === 'ar' ? 'فشل في إضافة المدير' : 'Failed to create manager'));
         },
     });
 };
@@ -40,11 +41,11 @@ export const useDeleteManager = () => {
     return useMutation({
         mutationFn: (id: string) => managerService.deleteManager(id),
         onSuccess: () => {
-            toast.success('تم حذف المدير بنجاح / Manager deleted successfully');
+            toast.success(useUIStore.getState().locale === 'ar' ? 'تم حذف المدير بنجاح' : 'Manager deleted successfully');
             queryClient.invalidateQueries({ queryKey: ['managers'] });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'فشل في حذف المدير / Failed to delete manager');
+            toast.error(error.response?.data?.message || (useUIStore.getState().locale === 'ar' ? 'فشل في حذف المدير' : 'Failed to delete manager'));
         },
     });
 };
@@ -64,11 +65,11 @@ export const useUpdateManagerPermission = () => {
         mutationFn: ({ managerId, data }: { managerId: string; data: ManagerPermissionUpdateInput }) =>
             managerService.updateManagerPermission(managerId, data),
         onSuccess: (_, variables) => {
-            toast.success('تم تحديث الصلاحيات بنجاح / Permissions updated successfully');
+            toast.success(useUIStore.getState().locale === 'ar' ? 'تم تحديث الصلاحيات بنجاح' : 'Permissions updated successfully');
             queryClient.invalidateQueries({ queryKey: ['manager_permissions', variables.managerId] });
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || 'فشل في تحديث الصلاحيات / Failed to update permissions');
+            toast.error(error.response?.data?.message || (useUIStore.getState().locale === 'ar' ? 'فشل في تحديث الصلاحيات' : 'Failed to update permissions'));
         },
     });
 };

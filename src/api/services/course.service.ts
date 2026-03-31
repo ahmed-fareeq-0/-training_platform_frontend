@@ -146,6 +146,17 @@ const courseService = {
         const res = await api.get(ENDPOINTS.COURSES.MY_REVIEW(courseId));
         return res.data.data;
     },
+
+    // --- Approval Workflow ---
+    getPendingCourses: async (params?: { page?: number; limit?: number }) => {
+        const res = await api.get<PaginatedResponse<Course>>(ENDPOINTS.COURSES.PENDING, { params });
+        return res.data;
+    },
+
+    reviewCourse: async (id: string, data: { is_approved: boolean; rejection_reason?: string }) => {
+        const res = await api.post<ApiResponse<Course>>(ENDPOINTS.COURSES.REVIEW_COURSE(id), data);
+        return res.data.data;
+    },
 };
 
 export default courseService;

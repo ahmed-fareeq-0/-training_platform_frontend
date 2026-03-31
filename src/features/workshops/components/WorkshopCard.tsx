@@ -1,9 +1,10 @@
 import React from 'react';
 import { Card, CardMedia, CardContent, Typography, Box, Avatar, IconButton, useTheme, alpha, Chip } from '@mui/material';
-import { FavoriteBorder, Favorite, MoreVert, AccessTimeRounded, MenuBookRounded } from '@mui/icons-material';
+import { MoreVert, AccessTimeRounded, MenuBookRounded, Bookmark, BookmarkBorder } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../store/authStore';
 import { useUIStore } from '../../../store/uiStore';
+import { UserRole } from '../../../types';
 import { useToggleBookmark } from '../hooks/useWorkshops';
 import { getImageUrl } from '../../../utils/imageUtils';
 
@@ -84,26 +85,36 @@ export default function WorkshopCard({ workshop, isAdminOrManager, onMenuClick }
                 </Box>
 
                 {/* Floating Badge (Top Right) */}
-                <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 2, display: 'flex', gap: 1 }}>
+                {(!user || user.role === UserRole.TRAINEE) && (
+                    <Box sx={{ 
+                        position: 'absolute', 
+                        top: 16, 
+                        right: locale === 'ar' ? 'auto' : 16, 
+                        left: locale === 'ar' ? 16 : 'auto', 
+                        zIndex: 2, 
+                        display: 'flex', 
+                        gap: 1 
+                    }}>
                     <IconButton
                         onClick={handleBookmark}
                         sx={{
                             bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.common.black, 0.6) : alpha(theme.palette.common.black, 0.8),
                             backdropFilter: 'blur(4px)',
                             borderRadius: '8px',
-                            p: 0.5,
+                            p: 0.75,
                             '&:hover': { transform: 'scale(1.05)' },
                             transition: 'all 0.2s',
                         }}
                         size="small"
                     >
                         {workshop.is_bookmarked ? (
-                            <Favorite sx={{ color: theme.palette.common.white, fontSize: 16 }} />
+                            <Bookmark sx={{ color: theme.palette.common.white, fontSize: 22 }} />
                         ) : (
-                            <FavoriteBorder sx={{ color: theme.palette.common.white, fontSize: 16 }} />
+                            <BookmarkBorder sx={{ color: theme.palette.common.white, fontSize: 22 }} />
                         )}
                     </IconButton>
                 </Box>
+                )}
             </Box>
 
             {/* Workshop Content Area */}
@@ -182,7 +193,7 @@ export default function WorkshopCard({ workshop, isAdminOrManager, onMenuClick }
                             {workshop.trainer_name ? workshop.trainer_name.charAt(0).toUpperCase() : 'M'}
                         </Avatar>
                         <Typography variant="caption" fontWeight={700} color="text.primary">
-                            {workshop.trainer_name || (locale === 'ar' ? 'المدرب / Trainer' : 'Trainer')}
+                            {workshop.trainer_name || (locale === 'ar' ? 'المدرب' : 'Trainer')}
                         </Typography>
                     </Box>
                 </Box>

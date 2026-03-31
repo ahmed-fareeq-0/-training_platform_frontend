@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import workshopService, { type WorkshopFilters } from '../../../api/services/workshop.service';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../../../store/authStore';
+import { UserRole } from '../../../types';
 
 export const workshopKeys = {
   all: ['workshops'] as const,
@@ -20,10 +22,17 @@ export const useUpcomingWorkshops = (filters: WorkshopFilters = { page: 1, limit
     queryFn: () => workshopService.getUpcoming(filters),
   });
 
-export const useAllWorkshops = (filters: WorkshopFilters = { page: 1, limit: 10 }) =>
+export const useAllWorkshops = (filters: WorkshopFilters = { page: 1, limit: 10 }, options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: workshopKeys.list(filters),
     queryFn: () => workshopService.getAll(filters),
+    ...options,
+  });
+
+export const usePendingWorkshops = (filters: WorkshopFilters = { page: 1, limit: 10 }) =>
+  useQuery({
+    queryKey: workshopKeys.pending(filters),
+    queryFn: () => workshopService.getPending(filters),
   });
 
 export const useMyWorkshops = (filters: WorkshopFilters = { page: 1, limit: 10 }, options?: { enabled?: boolean }) =>
@@ -79,12 +88,17 @@ export const useUpdateWorkshopStatus = () => {
 
 export const useCreateWorkshop = () => {
   const qc = useQueryClient();
+  const userRole = useAuthStore((s) => s.user?.role);
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => workshopService.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: workshopKeys.all });
       qc.invalidateQueries({ queryKey: ['workshops', 'upcoming'] });
-      toast.success('Workshop created successfully');
+      if (userRole === UserRole.TRAINER) {
+        toast.success('سيتم نشر ورشتك بعد موافقة المدير\nYour workshop will be published after Manager approval', { duration: 5000 });
+      } else {
+        toast.success('Workshop created successfully');
+      }
     },
     onError: (error: any) => {
       const data = error.response?.data;

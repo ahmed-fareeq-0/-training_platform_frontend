@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import courseService from '../../../api/services/course.service';
+import toast from 'react-hot-toast';
+import { useAuthStore } from '../../../store/authStore';
+import { UserRole } from '../../../types';
 
 // ==========================================
 // COURSE REACT QUERY HOOKS
@@ -13,6 +16,7 @@ export const courseKeys = {
   myCourses: ['courses', 'my-courses'] as const,
   myEnrollments: ['courses', 'my-enrollments'] as const,
   pendingEnrollments: (params?: Record<string, unknown>) => ['courses', 'pending-enrollments', params] as const,
+  pendingCourses: (params?: Record<string, unknown>) => ['courses', 'pending-courses', params] as const,
 };
 
 // --- Queries ---
@@ -63,10 +67,11 @@ export const usePendingEnrollments = (params?: { page?: number; limit?: number }
   });
 };
 
-export const useAllCourses = (params?: { page?: number; limit?: number }) => {
+export const useAllCourses = (params?: { page?: number; limit?: number }, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['courses', 'all', params],
     queryFn: () => courseService.getAll(params),
+    ...options,
   });
 };
 
@@ -74,10 +79,16 @@ export const useAllCourses = (params?: { page?: number; limit?: number }) => {
 
 export const useCreateCourse = () => {
   const qc = useQueryClient();
+  const userRole = useAuthStore((s) => s.user?.role);
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => courseService.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: courseKeys.all });
+      if (userRole === UserRole.TRAINER) {
+        toast.success('سيتم نشر دورتك بعد موافقة المدير\nYour course will be published after Manager approval', { duration: 5000 });
+      } else {
+        toast.success('Course created successfully');
+      }
     },
   });
 };
@@ -248,5 +259,25 @@ export const useMyCourseReview = (courseId: string) => {
     queryFn: () => courseService.getMyReview(courseId),
     enabled: !!courseId,
     retry: false, // 404 is expected if no review exists
+  });
+};
+
+// --- Approval Workflow ---
+
+export const usePendingCourses = (params?: { page?: number; limit?: number }) => {
+  return useQuery({
+    queryKey: courseKeys.pendingCourses(params),
+    queryFn: () => courseService.getPendingCourses(params),
+  });
+};
+
+export const useReviewCourse = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { is_approved: boolean; rejection_reason?: string } }) =>
+      courseService.reviewCourse(id, data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: courseKeys.all });
+    },
   });
 };

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import bookingService, { type BookingFilters } from '../../../api/services/booking.service';
 import { workshopKeys } from '../../workshops/hooks/useWorkshops';
 import toast from 'react-hot-toast';
+import { useUIStore } from '../../../store/uiStore';
 
 export const bookingKeys = {
     all: ['bookings'] as const,
@@ -23,10 +24,11 @@ export const useMyBookings = (filters: BookingFilters = { page: 1, limit: 10 }, 
         enabled: options?.enabled,
     });
 
-export const useAllBookings = (filters: BookingFilters = { page: 1, limit: 10 }) =>
+export const useAllBookings = (filters: BookingFilters = { page: 1, limit: 10 }, options?: { enabled?: boolean }) =>
     useQuery({
         queryKey: bookingKeys.list(filters),
         queryFn: () => bookingService.getAll(filters),
+        enabled: options?.enabled,
     });
 
 export const useBookingDetail = (id: string) =>
@@ -68,7 +70,7 @@ export const useBookingStats = () =>
 
 const useBookingMutation = (
     mutationFn: (id: string) => Promise<unknown>,
-    successMsg: string,
+    successMsg: string | { ar: string; en: string },
 ) => {
     const qc = useQueryClient();
     return useMutation({
@@ -76,7 +78,13 @@ const useBookingMutation = (
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: bookingKeys.all });
             qc.invalidateQueries({ queryKey: workshopKeys.all });
-            toast.success(successMsg);
+            toast.success(
+                typeof successMsg === 'string'
+                    ? successMsg
+                    : useUIStore.getState().locale === 'ar'
+                        ? successMsg.ar
+                        : successMsg.en
+            );
         },
     });
 };
@@ -91,10 +99,10 @@ export const useCreateBooking = () => {
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: bookingKeys.all });
             qc.invalidateQueries({ queryKey: workshopKeys.all });
-            toast.success('Booking created / تم الحجز بنجاح');
+            toast.success(useUIStore.getState().locale === 'ar' ? 'تم الحجز بنجاح' : 'Booking created successfully');
         },
     });
 };
 
-export const useApproveBooking = () => useBookingMutation(bookingService.approve, 'Booking approved / تم الموافقة');
-export const useMarkPayment = () => useBookingMutation(bookingService.markPayment, 'Payment confirmed / تم تأكيد الدفع');
+export const useApproveBooking = () => useBookingMutation(bookingService.approve, { ar: 'تمت الموافقة', en: 'Booking approved' });
+export const useMarkPayment = () => useBookingMutation(bookingService.markPayment, { ar: 'تم تأكيد الدفع', en: 'Payment confirmed' });

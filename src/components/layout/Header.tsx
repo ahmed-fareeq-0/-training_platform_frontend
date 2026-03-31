@@ -303,7 +303,7 @@ export default function Header() {
                                         '&:hover': { bgcolor: alpha(theme.palette.text.primary, 0.05) }
                                     }}
                                 >
-                                    <Badge badgeContent={unread?.count || 0} color="error">
+                                    <Badge color="error">
                                         <NotifIcon fontSize="small" />
                                     </Badge>
                                 </IconButton>

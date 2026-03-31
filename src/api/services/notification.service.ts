@@ -5,12 +5,12 @@ import type { ApiResponse, PaginatedResponse, Notification } from '../../types';
 const notificationService = {
     getAll: async (params?: { page?: number; limit?: number }) => {
         const res = await api.get<PaginatedResponse<Notification>>(ENDPOINTS.NOTIFICATIONS.BASE, { params });
-        return res.data;
+        return res.data.data;
     },
 
     getUnreadCount: async () => {
         const res = await api.get<ApiResponse<{ count: number }>>(ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT);
-        return res.data.data;
+        return res.data.data.count;
     },
 
     markAsRead: async (id: string) => {

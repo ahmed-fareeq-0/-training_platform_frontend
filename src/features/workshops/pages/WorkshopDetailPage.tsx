@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -6,7 +6,8 @@ import {
     Divider, Skeleton, useTheme, alpha, Avatar, Stack,
     TextField, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions, Alert,
     Tabs, Tab, Container,
-    Accordion, AccordionSummary, AccordionDetails, Chip
+    Accordion, AccordionSummary, AccordionDetails, Chip,
+    FormControl, InputLabel, Select, CircularProgress, Tooltip, ListItemText
 } from '@mui/material';
 import {
     AccessTime as AccessTimeIcon, People, LocationOn,
@@ -14,7 +15,8 @@ import {
     Description as DescriptionIcon, School as SchoolIcon, OndemandVideo as OndemandVideoIcon,
     WorkspacePremium as WorkspacePremiumIcon,
     Lock as LockIcon,
-    FormatListBulleted as FormatListBulletedIcon, ExpandMore as ExpandMoreIcon
+    FormatListBulleted as FormatListBulletedIcon, ExpandMore as ExpandMoreIcon,
+    WhatsApp as WhatsAppIcon
 } from '@mui/icons-material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
@@ -23,7 +25,7 @@ import toast from 'react-hot-toast';
 import dayjs from 'dayjs';
 
 import { useWorkshopDetail, useWorkshopAvailability, useUpdateWorkshopStatus, useWorkshopSyllabus } from '../hooks/useWorkshops';
-import { useCreateBooking, useCanBook } from '../../bookings/hooks/useBookings';
+import { useCreateBooking, useCanBook, useMyBookings } from '../../bookings/hooks/useBookings';
 import { useUIStore } from '../../../store/uiStore';
 import { useAuthStore } from '../../../store/authStore';
 import { UserRole, RequirementType } from '../../../types';
@@ -70,8 +72,19 @@ export default function WorkshopDetailPage() {
     const { data: syllabusItems = [] } = useWorkshopSyllabus(id!);
     const createBooking = useCreateBooking();
     const updateStatus = useUpdateWorkshopStatus();
+    const { data: myBookingsData } = useMyBookings({ page: 1, limit: 100 }, { enabled: !!user && user.role === UserRole.TRAINEE });
+
+    // Find if user has a pending (not yet paid) booking for this workshop
+    const myPendingBooking = useMemo(() => {
+        if (!myBookingsData?.data || !id) return null;
+        return myBookingsData.data.find(
+            (b: any) => b.workshop_id === id && b.status !== 'paid'
+        ) || null;
+    }, [myBookingsData, id]);
 
     const [bookingOpen, setBookingOpen] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('cash');
+    const [cashInfoOpen, setCashInfoOpen] = useState(false);
     const [activeTab, setActiveTab] = useState(0);
 
     const { data: requirements = [] } = useTrainingRequirements('workshop', id || '');
@@ -149,7 +162,11 @@ export default function WorkshopDetailPage() {
             }
 
             setBookingOpen(false);
-            navigate('/bookings');
+            if (paymentMethod === 'cash') {
+                setCashInfoOpen(true);
+            } else {
+                navigate('/bookings');
+            }
         } catch {
             // error handled by axios interceptor
         }
@@ -588,39 +605,7 @@ export default function WorkshopDetailPage() {
                                         {locale === 'ar' ? 'احجز مقعدك الآن واحصل على وصول كامل للورشة وموادها.' : 'Book your seat now and get full access to the workshop and its materials.'}
                                     </Typography>
 
-                                    {canBook ? (
-                                        <Button
-                                            variant="contained"
-                                            fullWidth
-                                            size="large"
-                                            onClick={hasRequirements ? () => setBookingOpen(true) : handleBook}
-                                            disabled={createBooking.isPending || availability?.is_full}
-                                            sx={{ py: 1.8, borderRadius: '16px', display: 'flex', justifyContent: 'space-between', px: 3 }}
-                                        >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <ShoppingCartIcon sx={{ fontSize: 22 }} />
-                                                <span style={{ fontSize: '1.05rem', fontWeight: 800 }}>
-                                                    {createBooking.isPending
-                                                        ? t('common.loading')
-                                                        : availability?.is_full
-                                                            ? (locale === 'ar' ? 'الورشة ممتلئة' : 'Workshop Full')
-                                                            : needsApproval
-                                                                ? (locale === 'ar' ? 'طلب حجز مقعد' : 'Request Booking')
-                                                                : t('booking.createBooking')}
-                                                </span>
-                                            </Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.3)', mx: 2, height: 24, alignSelf: 'center' }} />
-                                                <Typography variant="subtitle1" fontWeight={800} sx={{ lineHeight: 1 }}>
-                                                    {Number(workshop.price) > 0 ? `${Number(workshop.price).toLocaleString()} IQD` : (locale === 'ar' ? 'مجاني' : 'Free')}
-                                                </Typography>
-                                            </Box>
-                                        </Button>
-                                    ) : user?.role === UserRole.TRAINEE ? (
-                                        <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ p: 2, bgcolor: alpha(theme.palette.action.disabledBackground, 0.5), borderRadius: 2 }}>
-                                            {canBookData?.reason || (locale === 'ar' ? 'غير متاح للحجز حالياً' : 'Not available for booking')}
-                                        </Typography>
-                                    ) : !user && (
+                                    {!user ? (
                                         <Button
                                             variant="contained"
                                             fullWidth
@@ -641,7 +626,105 @@ export default function WorkshopDetailPage() {
                                                 </Typography>
                                             </Box>
                                         </Button>
+                                    ) : (
+                                        <Button
+                                            variant="contained"
+                                            fullWidth
+                                            size="large"
+                                            onClick={() => setBookingOpen(true)}
+                                            disabled={createBooking.isPending || availability?.is_full || !canBook}
+                                            sx={{
+                                                py: 1.8,
+                                                borderRadius: '16px',
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                px: 3,
+                                                '&.Mui-disabled': {
+                                                    bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.text.primary, 0.1) : alpha(theme.palette.text.primary, 0.08),
+                                                    color: theme.palette.mode === 'dark' ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.8),
+                                                }
+                                            }}
+                                        >
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <ShoppingCartIcon sx={{ fontSize: 22 }} />
+                                                <span style={{ fontSize: '1.05rem', fontWeight: 800, textAlign: 'left' }}>
+                                                    {createBooking.isPending
+                                                        ? t('common.loading')
+                                                        : availability?.is_full
+                                                            ? (locale === 'ar' ? 'الورشة ممتلئة' : 'Workshop Full')
+                                                            : !canBook && canBookData?.reason
+                                                                ? (locale === 'ar' ? canBookData.reason.split('/')[0].trim() : canBookData.reason.split('/')[1]?.trim() || canBookData.reason)
+                                                                : needsApproval
+                                                                    ? (locale === 'ar' ? 'طلب حجز مقعد' : 'Request Booking')
+                                                                    : t('booking.createBooking')}
+                                                </span>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Divider orientation="vertical" flexItem sx={{
+                                                    borderColor: (!canBook || availability?.is_full) ? 'inherit' : 'rgba(255,255,255,0.3)',
+                                                    mx: 2, height: 24, alignSelf: 'center', opacity: 0.5
+                                                }} />
+                                                <Typography variant="subtitle1" fontWeight={800} sx={{ lineHeight: 1 }}>
+                                                    {Number(workshop.price) > 0 ? `${Number(workshop.price).toLocaleString()} IQD` : (locale === 'ar' ? 'مجاني' : 'Free')}
+                                                </Typography>
+                                            </Box>
+                                        </Button>
                                     )}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Pending Payment Instructions Card */}
+                        {myPendingBooking && user?.role === UserRole.TRAINEE && (
+                            <Card sx={{
+                                borderRadius: '24px',
+                                border: `2px solid ${alpha(theme.palette.primary.main, 0.4)}`,
+                                boxShadow: 'none',
+                                overflow: 'hidden',
+                                // background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.04)} 0%, ${alpha(theme.palette.info.main, 0.04)} 100%)`,
+                            }}>
+                                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                                        <LocationOn sx={{ color: 'primary.main' }} />
+                                        <Typography variant="h6" fontWeight={800} color="primary.main">
+                                            {locale === 'ar' ? 'تعليمات إتمام الدفع' : 'Payment Instructions'}
+                                        </Typography>
+                                    </Box>
+                                    <Alert severity="info" sx={{ mb: 2.5, borderRadius: 2 }}>
+                                        {locale === 'ar'
+                                            ? 'لإتمام عملية التسجيل، يرجى التواصل معنا عبر الواتساب أو زيارة مقر الشركة على العنوان التالي:'
+                                            : 'To complete your registration, please contact us via WhatsApp or visit our office at the following address:'}
+                                    </Alert>
+                                    <Box sx={{
+                                        p: 2.5,
+                                        borderRadius: 2,
+                                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+                                        textAlign: 'center',
+                                        mb: 2.5
+                                    }}>
+                                        <Typography variant="body2" fontWeight={700} sx={{ lineHeight: 1.8 }}>
+                                            {locale === 'ar'
+                                                ? 'بابل – شارع 40 – بناية النسيم – الطابق الثاني – شركة المظلة للتكنولوجيا'
+                                                : 'Babylon – Street 40 – Al-Naseem Building – Second Floor – Umbrella Technology Company'}
+                                        </Typography>
+                                    </Box>
+                                    <Button
+                                        variant="contained"
+                                        fullWidth
+                                        startIcon={<WhatsAppIcon />}
+                                        onClick={() => window.open('https://wa.me/9647700000000', '_blank')}
+                                        sx={{
+                                            bgcolor: '#25D366',
+                                            borderRadius: 2,
+                                            py: 1.2,
+                                            fontWeight: 700,
+                                            textTransform: 'none',
+                                            '&:hover': { bgcolor: '#1DA851' }
+                                        }}
+                                    >
+                                        {locale === 'ar' ? 'تواصل عبر الواتساب' : 'Contact via WhatsApp'}
+                                    </Button>
                                 </CardContent>
                             </Card>
                         )}
@@ -702,19 +785,27 @@ export default function WorkshopDetailPage() {
                 fullWidth
                 PaperProps={{ sx: { borderRadius: 3 } }}
             >
-                <DialogTitle sx={{ fontWeight: 800, borderBottom: 1, borderColor: 'divider', pb: 2 }}>
-                    {locale === 'ar' ? 'متطلبات الحجز' : 'Booking Requirements'}
+                <DialogTitle sx={{ fontWeight: 800 }}>
+                    <ShoppingCartIcon sx={{ mr: 1, verticalAlign: 'middle', color: 'primary.main' }} />
+                    {locale === 'ar' ? 'التسجيل في الورشة' : 'Register for Workshop'}
                 </DialogTitle>
 
-                <DialogContent sx={{ mt: 2 }}>
-                    {requirements.length > 0 && (
-                        <Box sx={{ mb: 4 }}>
-                            <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-                                {locale === 'ar'
-                                    ? 'هذه الورشة تتطلب متطلبات مسبقة. سيتم مراجعة طلبك من قبل المشرف قبل الموافقة عليه.'
-                                    : 'This workshop has prerequisites. Your request will be reviewed by admin before approval.'}
-                            </Alert>
+                <DialogContent>
+                    <Alert severity="info" sx={{ mb: 3, mt: 1, borderRadius: 2 }}>
+                        {locale === 'ar'
+                            ? (needsApproval ? 'هذه الورشة تتطلب موافقة المشرف. سيتم تفعيل مقعدك بعد الدفع والمراجعة.' : 'سيتم تأكيد حجزك بشكل نهائي من قبل الإدارة بعد إكمال خطوات الدفع.')
+                            : (needsApproval ? 'This workshop requires admin approval. Your seat will be activated after payment and review.' : 'Your booking will be confirmed by admin after payment submission.')}
+                    </Alert>
 
+                    <Typography variant="body1" gutterBottom sx={{ mb: 1.5 }}>
+                        <strong>{locale === 'ar' ? 'الورشة:' : 'Workshop:'}</strong> {title}
+                    </Typography>
+                    <Typography variant="body1" gutterBottom sx={{ mb: 3 }}>
+                        <strong>{locale === 'ar' ? 'المبلغ المطلوب:' : 'Amount:'}</strong> <span style={{ color: theme.palette.primary.main, fontWeight: 800 }}>{Number(workshop.price).toLocaleString()} IQD</span>
+                    </Typography>
+
+                    {requirements.length > 0 && (
+                        <Box sx={{ mb: 4, p: 3, bgcolor: alpha(theme.palette.background.default, 0.5), borderRadius: 3, border: `1px solid ${theme.palette.divider}` }}>
                             <Typography variant="subtitle1" fontWeight={700} gutterBottom>
                                 {locale === 'ar' ? 'المستندات والمعلومات المطلوبة' : 'Required Documents & Information'}
                             </Typography>
@@ -778,13 +869,36 @@ export default function WorkshopDetailPage() {
                             ))}
                         </Box>
                     )}
+
+                    <FormControl fullWidth sx={{ mt: requirements.length > 0 ? 0 : 2 }}>
+                        <InputLabel>{locale === 'ar' ? 'طريقة الدفع' : 'Payment Method'}</InputLabel>
+                        <Select
+                            value={paymentMethod}
+                            onChange={(e) => setPaymentMethod(e.target.value as 'cash' | 'bank_transfer')}
+                            label={locale === 'ar' ? 'طريقة الدفع' : 'Payment Method'}
+                            sx={{ borderRadius: 2 }}
+                        >
+                            <MenuItem value="cash">💵 {locale === 'ar' ? 'نقداً أو في المركز' : 'Cash / In Center'}</MenuItem>
+                            <Tooltip title={locale === 'ar' ? 'ستتوفر هذه الطريقة قريباً' : 'This payment method will be available soon'} arrow placement="left">
+                                <span>
+                                    <MenuItem value="bank_transfer" disabled sx={{ opacity: 0.5 }}>
+                                        <ListItemText
+                                            primary={<>{locale === 'ar' ? '🏦 تحويل بنكي أو زين كاش' : '🏦 Bank Transfer / Zain Cash'}</>}
+                                            secondary={locale === 'ar' ? '(ستتوفر قريباً)' : '(Coming Soon)'}
+                                            secondaryTypographyProps={{ sx: { fontSize: '0.75rem', color: 'warning.main', fontWeight: 600 } }}
+                                        />
+                                    </MenuItem>
+                                </span>
+                            </Tooltip>
+                        </Select>
+                    </FormControl>
                 </DialogContent>
 
-                <DialogActions sx={{ p: 3, pt: 0 }}>
+                <DialogActions sx={{ p: 3, pt: 1 }}>
                     <Button
                         onClick={() => setBookingOpen(false)}
                         disabled={createBooking.isPending || submitReqMutation.isPending}
-                        sx={{ borderRadius: 2 }}
+                        sx={{ color: 'text.secondary', fontWeight: 600 }}
                     >
                         {t('common.cancel')}
                     </Button>
@@ -792,12 +906,68 @@ export default function WorkshopDetailPage() {
                         variant="contained"
                         onClick={handleBook}
                         disabled={createBooking.isPending || submitReqMutation.isPending}
-                        startIcon={<ShoppingCartIcon />}
-                        sx={{ px: 4, borderRadius: 2 }}
+                        startIcon={createBooking.isPending || submitReqMutation.isPending ? <CircularProgress size={18} /> : <ShoppingCartIcon />}
+                        sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
                     >
                         {createBooking.isPending || submitReqMutation.isPending
                             ? t('common.loading')
-                            : (locale === 'ar' ? 'إرسال الطلب' : 'Submit Request')}
+                            : (locale === 'ar' ? 'تأكيد التسجيل والدفع' : 'Confirm Registration')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Cash Payment Info Dialog */}
+            <Dialog
+                open={cashInfoOpen}
+                onClose={() => { setCashInfoOpen(false); navigate('/bookings'); }}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 2 } }}
+            >
+                <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {locale === 'ar' ? 'إتمام الدفع النقدي' : 'Complete Cash Payment'}
+                </DialogTitle>
+                <DialogContent>
+                    <Alert severity="info" icon={<LocationOn />} sx={{ mb: 3, mt: 1, borderRadius: 2 }}>
+                        {locale === 'ar'
+                            ? 'لقد اخترت الدفع النقدي. لإتمام عملية التسجيل، يرجى التواصل معنا عبر الواتساب أو زيارة مقر الشركة على العنوان التالي:'
+                            : 'You have selected Cash Payment. To complete your registration, please contact us via WhatsApp or visit our office at the following address:'}
+                    </Alert>
+                    <Box sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+                        textAlign: 'center'
+                    }}>
+                        <Typography variant="body1" fontWeight={700} sx={{ mb: 1, lineHeight: 1.8 }}>
+                            {locale === 'ar'
+                                ? 'بابل – شارع 40 – بناية النسيم – الطابق الثاني – شركة المظلة للتكنولوجيا'
+                                : 'Babylon – Street 40 – Al-Naseem Building – Second Floor – Umbrella Technology Company'}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<WhatsAppIcon />}
+                            onClick={() => window.open('https://wa.me/9647700000000', '_blank')}
+                            sx={{
+                                bgcolor: '#25D366',
+                                borderRadius: 2,
+                                px: 4,
+                                py: 1.2,
+                                fontWeight: 700,
+                                textTransform: 'none',
+                                '&:hover': { bgcolor: '#1DA851' }
+                            }}
+                        >
+                            {locale === 'ar' ? 'تواصل عبر الواتساب' : 'Contact via WhatsApp'}
+                        </Button>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+                    <Button onClick={() => { setCashInfoOpen(false); navigate('/bookings'); }} variant="outlined" sx={{ borderRadius: 2, fontWeight: 600 }}>
+                        {locale === 'ar' ? 'حسناً' : 'OK'}
                     </Button>
                 </DialogActions>
             </Dialog>

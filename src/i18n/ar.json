@@ -64,7 +64,7 @@
         "dashboard": "لوحة التحكم",
         "workshops": "الورشات",
         "bookings": "الحجوزات",
-        "bookmarks": "المفضلة",
+        "bookmarks": "المحفوظات",
         "users": "المستخدمون",
         "managers": "المديرون",
         "trainers": "المدربون",
@@ -78,7 +78,8 @@
         "settings": "الإعدادات",
         "profile": "الملف الشخصي",
         "courses": "الدورات",
-        "courseManage": "إدارة"
+        "courseManage": "إدارة",
+        "contentApprovals": "موافقات المحتوى"
     },
     "dashboard": {
         "welcome": "مرحباً",
@@ -107,7 +108,9 @@
         "seatsTotal": "إجمالي المقاعد",
         "status": {
             "pending": "قيد الانتظار",
+            "pending_approval": "بانتظار الموافقة",
             "confirmed": "مؤكد",
+            "approved": "تمت الموافقة",
             "cancelled": "ملغي",
             "attended": "حضر",
             "no_show": "لم يحضر",

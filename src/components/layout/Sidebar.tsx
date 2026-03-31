@@ -26,7 +26,8 @@ import {
     Logout,
     Favorite,
     MenuBook as CoursesIcon,
-    AssignmentTurnedIn as EnrollmentIcon
+    AssignmentTurnedIn as EnrollmentIcon,
+    FactCheck as ApprovalsIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -59,6 +60,10 @@ export const getNavItems = (userRole: UserRole): NavItem[] => {
 
     if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.MANAGER || userRole === UserRole.TRAINER) {
         items.push({ key: 'course-manage', labelKey: 'nav.courseManage', icon: <CoursesIcon />, path: '/courses/manage' });
+    }
+
+    if (userRole === UserRole.SUPER_ADMIN || userRole === UserRole.MANAGER) {
+        items.push({ key: 'content-approvals', labelKey: 'nav.contentApprovals', icon: <ApprovalsIcon />, path: '/content-approvals' });
     }
 
     if (userRole === UserRole.TRAINEE) {

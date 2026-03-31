@@ -64,7 +64,7 @@
         "dashboard": "Dashboard",
         "workshops": "Workshops",
         "bookings": "Bookings",
-        "bookmarks": "My Favorites",
+        "bookmarks": "Saved",
         "users": "Users",
         "managers": "Managers",
         "trainers": "Trainers",
@@ -78,7 +78,8 @@
         "settings": "Settings",
         "profile": "Profile",
         "courses": "Online Courses",
-        "courseManage": "Course Management"
+        "courseManage": "Course Management",
+        "contentApprovals": "Content Approvals"
     },
     "dashboard": {
         "welcome": "Welcome",
@@ -107,7 +108,9 @@
         "seatsTotal": "Total Seats",
         "status": {
             "pending": "Pending",
+            "pending_approval": "Pending Approval",
             "confirmed": "Confirmed",
+            "approved": "Approved",
             "cancelled": "Cancelled",
             "attended": "Attended",
             "no_show": "No Show",

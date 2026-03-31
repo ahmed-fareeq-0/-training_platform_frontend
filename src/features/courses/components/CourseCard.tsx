@@ -21,10 +21,10 @@ const levelColors: Record<string, 'success' | 'warning' | 'error'> = {
         advanced: 'error',
 };
 
-const levelLabels: Record<string, string> = {
-        beginner: 'مبتدئ / Beginner',
-        intermediate: 'متوسط / Intermediate',
-        advanced: 'متقدم / Advanced',
+const levelLabels: Record<string, { ar: string; en: string }> = {
+        beginner: { ar: 'مبتدئ', en: 'Beginner' },
+        intermediate: { ar: 'متوسط', en: 'Intermediate' },
+        advanced: { ar: 'متقدم', en: 'Advanced' },
 };
 
 const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
@@ -86,7 +86,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
                                 {/* Floating Badge (Top Right) */}
                                 <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
                                         <Chip
-                                                label={levelLabels[course.level] || course.level}
+                                                label={levelLabels[course.level]?.[locale === 'ar' ? 'ar' : 'en'] || course.level}
                                                 color={levelColors[course.level] || 'default'}
                                                 size="small"
                                                 sx={{
@@ -164,7 +164,7 @@ const CourseCard: React.FC<CourseCardProps> = ({ course }) => {
                                                         {course.trainer_name ? course.trainer_name.charAt(0).toUpperCase() : 'M'}
                                                 </Avatar>
                                                 <Typography variant="caption" fontWeight={700} color="text.primary">
-                                                        {course.trainer_name || 'المدرب / Trainer'}
+                                                        {course.trainer_name || (locale === 'ar' ? 'المدرب' : 'Trainer')}
                                                 </Typography>
                                         </Box>
 

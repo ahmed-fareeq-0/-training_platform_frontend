@@ -112,10 +112,10 @@ const lessonIcons: Record<string, React.ReactNode> = {
     text: <ArticleIcon color="action" />,
 };
 
-const levelLabels: Record<string, string> = {
-    beginner: 'مبتدئ / Beginner',
-    intermediate: 'متوسط / Intermediate',
-    advanced: 'متقدم / Advanced',
+const levelLabels: Record<string, { ar: string; en: string }> = {
+    beginner: { ar: 'مبتدئ', en: 'Beginner' },
+    intermediate: { ar: 'متوسط', en: 'Intermediate' },
+    advanced: { ar: 'متقدم', en: 'Advanced' },
 };
 
 // ─── Main Page Component ───
@@ -656,7 +656,7 @@ const CoursePlayerPage: React.FC = () => {
                                         {detail.specialization_name_ar && (
                                             <SidebarInfoRow icon={<SchoolIcon fontSize="small" />} label={isRTL ? 'الفئة' : 'Category'} value={isRTL ? detail.specialization_name_ar : (detail.specialization_name_en || detail.specialization_name_ar)} />
                                         )}
-                                        <SidebarInfoRow icon={<WorkspacePremiumIcon fontSize="small" />} label={isRTL ? 'المستوى' : 'Level'} value={levelLabels[detail.level] || detail.level} />
+                                        <SidebarInfoRow icon={<WorkspacePremiumIcon fontSize="small" />} label={isRTL ? 'المستوى' : 'Level'} value={levelLabels[detail.level]?.[isRTL ? 'ar' : 'en'] || detail.level} />
                                         <SidebarInfoRow icon={<FormatListBulletedIcon fontSize="small" />} label={isRTL ? 'عدد الأقسام' : 'Sections'} value={(course.sections?.length || 0).toString()} />
                                         <SidebarInfoRow icon={<PlayLessonRoundedIcon fontSize="small" />} label={isRTL ? 'عدد الدروس' : 'Lessons'} value={totalLessons.toString()} />
                                         <SidebarInfoRow icon={<AccessTimeIcon fontSize="small" />} label={isRTL ? 'المدة الكلية' : 'Total Duration'} value={formatHoursMinutes(detail.total_duration_minutes || 0)} />

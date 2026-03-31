@@ -131,5 +131,7 @@ export const ENDPOINTS = {
         LESSON_POSITION: (courseId: string, lessonId: string) => `/courses/${courseId}/progress/${lessonId}/position`,
         REVIEW: (courseId: string) => `/courses/${courseId}/review`,
         MY_REVIEW: (courseId: string) => `/courses/${courseId}/review/me`,
+        PENDING: '/courses/pending',
+        REVIEW_COURSE: (id: string) => `/courses/${id}/approve`,
     },
 } as const;

@@ -408,7 +408,7 @@ export default function WorkshopFormDialog({ open, onClose, onCreated, workshop 
                             </Button>
                         ) : (
                             <Button type="button" variant="contained" disabled={isPending} onClick={handleSubmit(onSubmit)}>
-                                {isPending ? '...' : (locale === 'ar' ? 'حفظ' : 'Save')}
+                                {isPending ? '...' : (locale === 'ar' ? 'انشاء والبدء في بناء المنهج' : 'Create and Start Creating Curriculum')}
                             </Button>
                         )}
                     </Box>

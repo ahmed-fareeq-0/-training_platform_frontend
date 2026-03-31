@@ -70,10 +70,10 @@ export function formatHoursMinutes(totalMinutes: number): string {
 // LEVEL LABELS
 // ==========================================
 
-export const levelLabels: Record<string, string> = {
-    beginner: 'مبتدئ / Beginner',
-    intermediate: 'متوسط / Intermediate',
-    advanced: 'متقدم / Advanced',
+export const levelLabels: Record<string, { ar: string; en: string }> = {
+    beginner: { ar: 'مبتدئ', en: 'Beginner' },
+    intermediate: { ar: 'متوسط', en: 'Intermediate' },
+    advanced: { ar: 'متقدم', en: 'Advanced' },
 };
 
 // ==========================================

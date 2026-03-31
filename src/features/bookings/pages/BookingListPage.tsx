@@ -39,8 +39,8 @@ export default function BookingListPage() {
         const isAdmin = user?.role === UserRole.SUPER_ADMIN || user?.role === UserRole.MANAGER;
 
         const filters = { page, limit: 10, ...(statusFilter && { status: statusFilter }) };
-        const allBookings = useAllBookings(filters);
-        const myBookings = useMyBookings(filters);
+        const allBookings = useAllBookings(filters, { enabled: isAdmin });
+        const myBookings = useMyBookings(filters, { enabled: !isAdmin });
         const activeQuery = isAdmin ? allBookings : myBookings;
         const bookings = activeQuery.data?.data || [];
         const pagination = activeQuery.data?.pagination;

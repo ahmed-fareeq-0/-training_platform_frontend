@@ -5,8 +5,9 @@ import {
     Accordion, AccordionSummary, AccordionDetails, List, ListItem, ListItemButton,
     ListItemText, Dialog, DialogTitle, DialogContent, DialogActions, IconButton,
     FormControl, InputLabel, Select, MenuItem, Alert, Grid, Card, CardContent, Divider, useTheme, alpha, Tabs, Tab, TextField,
-    LinearProgress,
+    LinearProgress, Tooltip,
 } from '@mui/material';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -56,6 +57,14 @@ const CourseDetailPage: React.FC = () => {
         return (myEnrollments as any[])?.find((e: any) => e.course_id === id && (e.status === 'active' || e.status === 'completed'));
     }, [myEnrollments, id]);
 
+    // Check if user has a pending (not yet active/paid) enrollment
+    const myPendingEnrollment = useMemo(() => {
+        if (!myEnrollments || !id) return null;
+        return (myEnrollments as any[])?.find(
+            (e: any) => e.course_id === id && (e.status === 'pending_review' || e.status === 'pending_payment')
+        ) || null;
+    }, [myEnrollments, id]);
+
     const { data: progressData } = useCourseProgress(myEnrollment ? id! : '');
 
     // Auto-redirect enrolled users directly to the learning page
@@ -67,6 +76,7 @@ const CourseDetailPage: React.FC = () => {
 
     const [enrollOpen, setEnrollOpen] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank_transfer'>('cash');
+    const [cashInfoOpen, setCashInfoOpen] = useState(false);
     const [previewLesson, setPreviewLesson] = useState<CourseLesson | null>(null);
     const [activeTab, setActiveTab] = useState(0);
     const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
@@ -205,6 +215,9 @@ const CourseDetailPage: React.FC = () => {
             }
 
             setEnrollOpen(false);
+            if (paymentMethod === 'cash') {
+                setCashInfoOpen(true);
+            }
         } catch {
             // Error handled by mutation
         }
@@ -221,9 +234,9 @@ const CourseDetailPage: React.FC = () => {
     if (!course) {
         return (
             <Box sx={{ py: 6, textAlign: 'center', width: '100%' }}>
-                <Typography variant="h5">الدورة غير موجودة / Course not found</Typography>
+                <Typography variant="h5">{locale === 'ar' ? 'الدورة غير موجودة' : 'Course not found'}</Typography>
                 <Button sx={{ mt: 2 }} onClick={() => navigate('/courses')}>
-                    رجوع / Back
+                    {locale === 'ar' ? 'رجوع' : 'Back'}
                 </Button>
             </Box>
         );
@@ -673,26 +686,55 @@ const CourseDetailPage: React.FC = () => {
                                     </Typography>
 
                                     {user?.role === UserRole.TRAINEE ? (
-                                        <Button
-                                            variant="contained"
-                                            fullWidth
-                                            size="large"
-                                            onClick={() => setEnrollOpen(true)}
-                                            sx={{ py: 1.8, borderRadius: '16px', display: 'flex', justifyContent: 'space-between', px: 3 }}
-                                        >
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                <ShoppingCartIcon sx={{ fontSize: 22 }} />
-                                                <span style={{ fontSize: '1.05rem', fontWeight: 800 }}>
-                                                    {needsApproval ? (locale === 'ar' ? 'طلب تسجيل' : 'Request Enrollment') : (locale === 'ar' ? 'التسجيل الآن' : 'Enroll Now')}
-                                                </span>
-                                            </Box>
-                                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                                <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.3)', mx: 2, height: 24, alignSelf: 'center' }} />
-                                                <Typography variant="subtitle1" fontWeight={800} sx={{ lineHeight: 1 }}>
-                                                    {Number(course.price) > 0 ? `${Number(course.price).toLocaleString()} IQD` : (locale === 'ar' ? 'مجاني' : 'Free')}
-                                                </Typography>
-                                            </Box>
-                                        </Button>
+                                        myPendingEnrollment ? (
+                                            <Button
+                                                variant="contained"
+                                                fullWidth
+                                                size="large"
+                                                disabled
+                                                sx={{
+                                                    py: 1.8, borderRadius: '16px', display: 'flex', justifyContent: 'space-between', px: 3,
+                                                    '&.Mui-disabled': {
+                                                        bgcolor: theme.palette.mode === 'dark' ? alpha(theme.palette.text.primary, 0.1) : alpha(theme.palette.text.primary, 0.08),
+                                                        color: theme.palette.mode === 'dark' ? theme.palette.text.primary : alpha(theme.palette.text.primary, 0.8),
+                                                    }
+                                                }}
+                                            >
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <CheckCircleIcon sx={{ fontSize: 22 }} />
+                                                    <span style={{ fontSize: '1.05rem', fontWeight: 800 }}>
+                                                        {locale === 'ar' ? 'تم التسجيل مسبقاً' : 'Already Registered'}
+                                                    </span>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <Divider orientation="vertical" flexItem sx={{ borderColor: 'inherit', mx: 2, height: 24, alignSelf: 'center', opacity: 0.5 }} />
+                                                    <Typography variant="subtitle1" fontWeight={800} sx={{ lineHeight: 1 }}>
+                                                        {Number(course.price) > 0 ? `${Number(course.price).toLocaleString()} IQD` : (locale === 'ar' ? 'مجاني' : 'Free')}
+                                                    </Typography>
+                                                </Box>
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                variant="contained"
+                                                fullWidth
+                                                size="large"
+                                                onClick={() => setEnrollOpen(true)}
+                                                sx={{ py: 1.8, borderRadius: '16px', display: 'flex', justifyContent: 'space-between', px: 3 }}
+                                            >
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <ShoppingCartIcon sx={{ fontSize: 22 }} />
+                                                    <span style={{ fontSize: '1.05rem', fontWeight: 800 }}>
+                                                        {needsApproval ? (locale === 'ar' ? 'طلب تسجيل' : 'Request Enrollment') : (locale === 'ar' ? 'التسجيل الآن' : 'Enroll Now')}
+                                                    </span>
+                                                </Box>
+                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(255,255,255,0.3)', mx: 2, height: 24, alignSelf: 'center' }} />
+                                                    <Typography variant="subtitle1" fontWeight={800} sx={{ lineHeight: 1 }}>
+                                                        {Number(course.price) > 0 ? `${Number(course.price).toLocaleString()} IQD` : (locale === 'ar' ? 'مجاني' : 'Free')}
+                                                    </Typography>
+                                                </Box>
+                                            </Button>
+                                        )
                                     ) : !user && (
                                         <Button
                                             variant="contained"
@@ -722,6 +764,61 @@ const CourseDetailPage: React.FC = () => {
                                                                                                     {locale === 'ar' ? 'ضمان استرداد الأموال لمدة 30 يومًا' : '30-Day Money-Back Guarantee'}
                                                                                           </Typography>
                                                                                 </Box> */}
+                                </CardContent>
+                            </Card>
+                        )}
+
+                        {/* Pending Payment Instructions Card */}
+                        {myPendingEnrollment && user?.role === UserRole.TRAINEE && (
+                            <Card sx={{
+                                borderRadius: '24px',
+                                border: `2px solid ${alpha(theme.palette.primary.main, 0.4)}`,
+                                boxShadow: 'none',
+                                overflow: 'hidden',
+                                // background: `linear-gradient(135deg, ${alpha(theme.palette.warning.main, 0.04)} 0%, ${alpha(theme.palette.info.main, 0.04)} 100%)`,
+                            }}>
+                                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                                        <LocationOnIcon sx={{ color: 'primary.main' }} />
+                                        <Typography variant="h6" fontWeight={800} color="primary.main">
+                                            {locale === 'ar' ? 'تعليمات إتمام الدفع' : 'Payment Instructions'}
+                                        </Typography>
+                                    </Box>
+                                    <Alert severity="info" sx={{ mb: 2.5, borderRadius: 2 }}>
+                                        {locale === 'ar'
+                                            ? 'لإتمام عملية التسجيل، يرجى التواصل معنا عبر الواتساب أو زيارة مقر الشركة على العنوان التالي:'
+                                            : 'To complete your registration, please contact us via WhatsApp or visit our office at the following address:'}
+                                    </Alert>
+                                    <Box sx={{
+                                        p: 2.5,
+                                        borderRadius: 2,
+                                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                                        border: `1px solid ${alpha(theme.palette.primary.main, 0.12)}`,
+                                        textAlign: 'center',
+                                        mb: 2.5
+                                    }}>
+                                        <Typography variant="body2" fontWeight={700} sx={{ lineHeight: 1.8 }}>
+                                            {locale === 'ar'
+                                                ? 'بابل – شارع 40 – بناية النسيم – الطابق الثاني – شركة المظلة للتكنولوجيا'
+                                                : 'Babylon – Street 40 – Al-Naseem Building – Second Floor – Umbrella Technology Company'}
+                                        </Typography>
+                                    </Box>
+                                    <Button
+                                        variant="contained"
+                                        fullWidth
+                                        startIcon={<WhatsAppIcon />}
+                                        onClick={() => window.open('https://wa.me/9647700000000', '_blank')}
+                                        sx={{
+                                            bgcolor: '#25D366',
+                                            borderRadius: 2,
+                                            py: 1.2,
+                                            fontWeight: 700,
+                                            textTransform: 'none',
+                                            '&:hover': { bgcolor: '#1DA851' }
+                                        }}
+                                    >
+                                        {locale === 'ar' ? 'تواصل عبر الواتساب' : 'Contact via WhatsApp'}
+                                    </Button>
                                 </CardContent>
                             </Card>
                         )}
@@ -822,7 +919,7 @@ const CourseDetailPage: React.FC = () => {
                                     {course.specialization_name_ar && (
                                         <SidebarInfoRow icon={<SchoolIcon fontSize="small" />} label={locale === 'ar' ? 'الفئة' : 'Category'} value={locale === 'ar' ? course.specialization_name_ar : (course.specialization_name_en || course.specialization_name_ar)} />
                                     )}
-                                    <SidebarInfoRow icon={<WorkspacePremiumIcon fontSize="small" />} label={locale === 'ar' ? 'المستوى' : 'Level'} value={levelLabels[course.level]} />
+                                    <SidebarInfoRow icon={<WorkspacePremiumIcon fontSize="small" />} label={locale === 'ar' ? 'المستوى' : 'Level'} value={levelLabels[course.level]?.[locale === 'ar' ? 'ar' : 'en'] || course.level} />
                                     <SidebarInfoRow icon={<FormatListBulletedIcon fontSize="small" />} label={locale === 'ar' ? 'عدد الأقسام' : 'Sections'} value={(course.sections?.length || 0).toString()} />
                                     <SidebarInfoRow icon={<PlayLessonRoundedIcon fontSize="small" />} label={locale === 'ar' ? 'عدد الدروس' : 'Lessons'} value={totalLessons.toString()} />
                                     <SidebarInfoRow icon={<AccessTimeIcon fontSize="small" />} label={locale === 'ar' ? 'المدة الكلية' : 'Total Duration'} value={formatHoursMinutes(course.total_duration_minutes || 0)} />
@@ -956,8 +1053,18 @@ const CourseDetailPage: React.FC = () => {
                             label={locale === 'ar' ? 'طريقة الدفع' : 'Payment Method'}
                             sx={{ borderRadius: 2 }}
                         >
-                            <MenuItem value="cash">💵 {locale === 'ar' ? 'نقداً / في المركز' : 'Cash / In Center'}</MenuItem>
-                            <MenuItem value="bank_transfer">🏦 {locale === 'ar' ? 'تحويل بنكي / زين كاش' : 'Bank Transfer / Zain Cash'}</MenuItem>
+                            <MenuItem value="cash">💵 {locale === 'ar' ? 'نقداً أو في المركز' : 'Cash / In Center'}</MenuItem>
+                            <Tooltip title={locale === 'ar' ? 'ستتوفر هذه الطريقة قريباً' : 'This payment method will be available soon'} arrow placement="left">
+                                <span>
+                                    <MenuItem value="bank_transfer" disabled sx={{ opacity: 0.5 }}>
+                                        <ListItemText
+                                            primary={<>{locale === 'ar' ? '🏦 تحويل بنكي أو زين كاش' : '🏦 Bank Transfer / Zain Cash'}</>}
+                                            secondary={locale === 'ar' ? '(ستتوفر قريباً)' : '(Coming Soon)'}
+                                            secondaryTypographyProps={{ sx: { fontSize: '0.75rem', color: 'warning.main', fontWeight: 600 } }}
+                                        />
+                                    </MenuItem>
+                                </span>
+                            </Tooltip>
                         </Select>
                     </FormControl>
                 </DialogContent>
@@ -973,6 +1080,62 @@ const CourseDetailPage: React.FC = () => {
                         sx={{ borderRadius: 2, px: 3, fontWeight: 700 }}
                     >
                         {locale === 'ar' ? 'تأكيد التسجيل والدفع' : 'Confirm Enrollment'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* Cash Payment Info Dialog */}
+            <Dialog
+                open={cashInfoOpen}
+                onClose={() => setCashInfoOpen(false)}
+                maxWidth="sm"
+                fullWidth
+                PaperProps={{ sx: { borderRadius: 2 } }}
+            >
+                <DialogTitle sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {locale === 'ar' ? 'إتمام الدفع النقدي' : 'Complete Cash Payment'}
+                </DialogTitle>
+                <DialogContent>
+                    <Alert severity="info" icon={<LocationOnIcon />} sx={{ mb: 3, mt: 1, borderRadius: 2 }}>
+                        {locale === 'ar'
+                            ? 'لقد اخترت الدفع النقدي. لإتمام عملية التسجيل، يرجى التواصل معنا عبر الواتساب أو زيارة مقر الشركة على العنوان التالي:'
+                            : 'You have selected Cash Payment. To complete your registration, please contact us via WhatsApp or visit our office at the following address:'}
+                    </Alert>
+                    <Box sx={{
+                        p: 3,
+                        borderRadius: 3,
+                        bgcolor: alpha(theme.palette.primary.main, 0.04),
+                        border: `1px solid ${alpha(theme.palette.primary.main, 0.15)}`,
+                        textAlign: 'center'
+                    }}>
+                        <Typography variant="body1" fontWeight={700} sx={{ mb: 1, lineHeight: 1.8 }}>
+                            {locale === 'ar'
+                                ? 'بابل – شارع 40 – بناية النسيم – الطابق الثاني – شركة المظلة للتكنولوجيا'
+                                : 'Babylon – Street 40 – Al-Naseem Building – Second Floor – Umbrella Technology Company'}
+                        </Typography>
+                    </Box>
+                    <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                        <Button
+                            variant="contained"
+                            startIcon={<WhatsAppIcon />}
+                            onClick={() => window.open('https://wa.me/9647700000000', '_blank')}
+                            sx={{
+                                bgcolor: '#25D366',
+                                borderRadius: 2,
+                                px: 4,
+                                py: 1.2,
+                                fontWeight: 700,
+                                textTransform: 'none',
+                                '&:hover': { bgcolor: '#1DA851' }
+                            }}
+                        >
+                            {locale === 'ar' ? 'تواصل عبر الواتساب' : 'Contact via WhatsApp'}
+                        </Button>
+                    </Box>
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+                    <Button onClick={() => setCashInfoOpen(false)} variant="outlined" sx={{ borderRadius: 2, fontWeight: 600 }}>
+                        {locale === 'ar' ? 'حسناً' : 'OK'}
                     </Button>
                 </DialogActions>
             </Dialog>

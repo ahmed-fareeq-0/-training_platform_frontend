@@ -103,13 +103,13 @@ const CourseManagePage: React.FC = () => {
     };
 
     // Course data
-    const { data: myCourses, isLoading: loadingMy } = useMyCourses();
-    const { data: allCoursesData, isLoading: loadingAll } = useAllCourses();
+    const { data: myCourses, isLoading: loadingMy } = useMyCourses({ enabled: !isAdmin });
+    const { data: allCoursesData, isLoading: loadingAll } = useAllCourses(undefined, { enabled: isAdmin });
     const { data: specializations } = useSpecializations();
 
     // Workshop data
-    const { data: myWorkshopsData, isLoading: loadingMyWorkshops } = useMyWorkshops();
-    const { data: allWorkshopsData, isLoading: loadingAllWorkshops } = useAllWorkshops();
+    const { data: myWorkshopsData, isLoading: loadingMyWorkshops } = useMyWorkshops(undefined, { enabled: !isAdmin });
+    const { data: allWorkshopsData, isLoading: loadingAllWorkshops } = useAllWorkshops(undefined, { enabled: isAdmin });
 
     const createCourse = useCreateCourse();
     const deleteCourse = useDeleteCourse();
@@ -498,65 +498,65 @@ const CourseManagePage: React.FC = () => {
 
             {/* ========== CREATE COURSE DIALOG ========== */}
             <Dialog open={courseDialog} onClose={() => setCourseDialog(false)} maxWidth="sm" fullWidth>
-                <DialogTitle fontWeight={700}>إنشاء دورة جديدة / Create New Course</DialogTitle>
+                <DialogTitle fontWeight={700}>{isRTL ? 'إنشاء دورة جديدة' : 'Create New Course'}</DialogTitle>
                 <DialogContent>
                     <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
-                        بعد الإنشاء سيتم نقلك إلى صفحة بناء المنهج لإضافة الأقسام والدروس.
-                        <br />
-                        After creating, you'll be redirected to the Course Builder to add sections and lessons.
+                        {isRTL 
+                            ? 'بعد الإنشاء سيتم نقلك إلى صفحة بناء المنهج لإضافة الأقسام والدروس.' 
+                            : "After creating, you\'ll be redirected to the Course Builder to add sections and lessons."}
                     </Alert>
                     <Stack spacing={2} sx={{ mt: 1 }}>
-                        <TextField label="عنوان بالعربية" fullWidth required
+                        <TextField label={isRTL ? 'عنوان بالعربية' : 'Title in Arabic'} fullWidth required
                             onChange={e => setCourseForm(p => ({ ...p, title_ar: e.target.value }))} />
-                        <TextField label="Title in English" fullWidth required
+                        <TextField label={isRTL ? 'العنوان بالإنجليزية' : 'Title in English'} fullWidth required
                             onChange={e => setCourseForm(p => ({ ...p, title_en: e.target.value }))} />
-                        <TextField label="وصف بالعربية" fullWidth multiline rows={3}
+                        <TextField label={isRTL ? 'وصف بالعربية' : 'Description in Arabic'} fullWidth multiline rows={3}
                             onChange={e => setCourseForm(p => ({ ...p, description_ar: e.target.value }))} />
-                        <TextField label="Description in English" fullWidth multiline rows={3}
+                        <TextField label={isRTL ? 'الوصف بالإنجليزية' : 'Description in English'} fullWidth multiline rows={3}
                             onChange={e => setCourseForm(p => ({ ...p, description_en: e.target.value }))} />
-                        <TextField label="السعر (IQD)" type="number" fullWidth
+                        <TextField label={isRTL ? 'السعر (IQD)' : 'Price (IQD)'} type="number" fullWidth
                             onChange={e => setCourseForm(p => ({ ...p, price: parseFloat(e.target.value) || 0 }))} />
                         <FormControl fullWidth>
-                            <InputLabel>المستوى / Level</InputLabel>
+                            <InputLabel>{isRTL ? 'المستوى' : 'Level'}</InputLabel>
                             <Select
                                 value={(courseForm.level as string) || 'beginner'}
                                 onChange={e => setCourseForm(p => ({ ...p, level: e.target.value as string }))}
-                                label="المستوى / Level"
+                                label={isRTL ? 'المستوى' : 'Level'}
                             >
-                                <MenuItem value="beginner">مبتدئ / Beginner</MenuItem>
-                                <MenuItem value="intermediate">متوسط / Intermediate</MenuItem>
-                                <MenuItem value="advanced">متقدم / Advanced</MenuItem>
+                                <MenuItem value="beginner">{isRTL ? 'مبتدئ' : 'Beginner'}</MenuItem>
+                                <MenuItem value="intermediate">{isRTL ? 'متوسط' : 'Intermediate'}</MenuItem>
+                                <MenuItem value="advanced">{isRTL ? 'متقدم' : 'Advanced'}</MenuItem>
                             </Select>
                         </FormControl>
                         <FormControl fullWidth>
-                            <InputLabel>الفئة / Category</InputLabel>
+                            <InputLabel>{isRTL ? 'الفئة' : 'Category'}</InputLabel>
                             <Select
                                 value={(courseForm.specialization_id as string) || ''}
                                 onChange={e => setCourseForm(p => ({ ...p, specialization_id: e.target.value as string }))}
-                                label="الفئة / Category"
+                                label={isRTL ? 'الفئة' : 'Category'}
                             >
-                                <MenuItem value="">بدون تخصص / None</MenuItem>
+                                <MenuItem value="">{isRTL ? 'بدون تخصص' : 'None'}</MenuItem>
                                 {((specializations as any)?.data || specializations || []).map((s: any) => (
-                                    <MenuItem key={s.id} value={s.id}>{s.name_ar} / {s.name_en}</MenuItem>
+                                    <MenuItem key={s.id} value={s.id}>{isRTL ? s.name_ar : s.name_en}</MenuItem>
                                 ))}
                             </Select>
                         </FormControl>
                         <Box>
                             <Button variant="outlined" component="label" startIcon={<CloudUploadIcon />}>
-                                رفع صورة الغلاف / Upload Cover
+                                {isRTL ? 'رفع صورة الغلاف' : 'Upload Cover'}
                                 <input type="file" accept="image/*" hidden onChange={handleMediaUpload} />
                             </Button>
                             {uploadMedia.isPending && <CircularProgress size={20} sx={{ ml: 1 }} />}
                             {courseForm.cover_image && (
-                                <Typography variant="caption" sx={{ ml: 1 }}>✅ تم الرفع</Typography>
+                                <Typography variant="caption" sx={{ ml: 1 }}>✅ {isRTL ? 'تم الرفع' : 'Uploaded'}</Typography>
                             )}
                         </Box>
                     </Stack>
                 </DialogContent>
                 <DialogActions sx={{ px: 3, pb: 3 }}>
-                    <Button onClick={() => setCourseDialog(false)}>إلغاء</Button>
+                    <Button onClick={() => setCourseDialog(false)}>{isRTL ? 'إلغاء' : 'Cancel'}</Button>
                     <Button variant="contained" onClick={handleCreateCourse} disabled={createCourse.isPending}>
-                        {createCourse.isPending ? <CircularProgress size={20} /> : 'إنشاء والبدء ببناء المنهج / Create & Build'}
+                        {createCourse.isPending ? <CircularProgress size={20} /> : (isRTL ? 'إنشاء والبدء ببناء المنهج' : 'Create & Build')}
                     </Button>
                 </DialogActions>
             </Dialog>

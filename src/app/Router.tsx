@@ -32,6 +32,7 @@ import CoursePlayerPage from '../features/courses/pages/CoursePlayerPage';
 import CourseManagePage from '../features/courses/pages/CourseManagePage';
 import CourseBuilderPage from '../features/courses/pages/CourseBuilderPage';
 import EnrollmentRequestsPage from '../features/requirements/pages/EnrollmentRequestsPage';
+import ContentApprovalsPage from '../features/approvals/pages/ContentApprovalsPage';
 import { useAuthStore } from '../store/authStore';
 
 const InitialRoute = () => {
@@ -93,6 +94,9 @@ const router = createBrowserRouter([
 
             // Enrollment Requests (SuperAdmin / Manager)
             { path: 'enrollment-requests', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><EnrollmentRequestsPage /></RoleGuard></AuthGuard> },
+
+            // Content Approvals (SuperAdmin / Manager)
+            { path: 'content-approvals', element: <AuthGuard><RoleGuard roles={[UserRole.SUPER_ADMIN, UserRole.MANAGER]}><ContentApprovalsPage /></RoleGuard></AuthGuard> },
 
             // Notifications
             { path: 'notifications', element: <AuthGuard><NotificationsPage /></AuthGuard> },

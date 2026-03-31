@@ -1,5 +1,6 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import toast from 'react-hot-toast';
+import { useUIStore } from '../store/uiStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
 
@@ -109,7 +110,7 @@ api.interceptors.response.use(
             } catch (refreshError) {
                 processQueue(refreshError, null);
                 clearTokens();
-                toast.error('Session expired. Please login again.');
+                toast.error(useUIStore.getState().locale === 'ar' ? 'انتهت الجلسة. يرجى تسجيل الدخول مرة أخرى.' : 'Session expired. Please login again.');
                 window.location.href = '/login';
                 return Promise.reject(refreshError);
             } finally {
@@ -121,15 +122,15 @@ api.interceptors.response.use(
         const message = error.response?.data?.message || error.message;
 
         if (error.response?.status === 403) {
-            toast.error('Access denied / غير مسموح بالوصول', { id: 'err-403' });
+            toast.error(useUIStore.getState().locale === 'ar' ? 'غير مسموح بالوصول' : 'Access denied', { id: 'err-403' });
         } else if (error.response?.status === 404) {
             // handled by caller
         } else if (error.response?.status === 409) {
             toast.error(message, { id: `err-409-${message}` });
         } else if (error.response?.status === 500) {
-            toast.error('Server error. Please try again / خطأ في الخادم', { id: 'err-500' });
+            toast.error(useUIStore.getState().locale === 'ar' ? 'خطأ في الخادم. يرجى المحاولة مرة أخرى' : 'Server error. Please try again', { id: 'err-500' });
         } else if (!error.response) {
-            toast.error('Network error. Check your connection / خطأ في الاتصال', { id: 'err-network' });
+            toast.error(useUIStore.getState().locale === 'ar' ? 'خطأ في الاتصال. تحقق من اتصالك' : 'Network error. Check your connection', { id: 'err-network' });
         }
 
         return Promise.reject(error);
